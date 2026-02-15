@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
+<head>
+<title>Lingo-AX</title>
+<meta charset="UTF-8">
+</head>
 <body>
 
-<h1>Learn English</h1>
+<h1>Lingo-AX</h1>
 
 <input id="word" placeholder="Enter word">
 <button onclick="speak()">Speak</button>
@@ -16,41 +20,30 @@
 
 <script>
 
-var voices = [];
-
-speechSynthesis.onvoiceschanged = function() {
-  voices = speechSynthesis.getVoices();
-};
-
 function speak() {
+  var text = document.getElementById("word").value;
 
-var text = document.getElementById("word").value;
+  var speech = new SpeechSynthesisUtterance(text);
 
-var speech = new SpeechSynthesisUtterance(text);
+  speech.lang = "auto";
 
-if(voices.length > 0){
-speech.voice = voices[0];
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(speech);
 }
-
-speechSynthesis.speak(speech);
-
-}
-\
-
 
 function translate() {
-  var word = document.getElementById("translateWord").value;
+  var word = document.getElementById("translateWord").value.toLowerCase();
 
-  if(word == "hello") {
+  if(word == "hello"){
     document.getElementById("result").innerHTML = "مرحبا";
   }
-  else if(word == "apple") {
+  else if(word == "apple"){
     document.getElementById("result").innerHTML = "تفاحة";
   }
-  else if(word == "car") {
+  else if(word == "car"){
     document.getElementById("result").innerHTML = "سيارة";
   }
-  else {
+  else{
     document.getElementById("result").innerHTML = "Not found";
   }
 }
