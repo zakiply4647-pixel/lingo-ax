@@ -61,7 +61,231 @@ display:none;
 <h1>Lingo-AX</h1>
 
 <button class="tab" onclick="showTab('translator')">Translator</button>
-<button class="tab
+<button class="tab" onclick="showTab('exercise')">Exercise</button>
+<button class="tab" onclick="showTab('grammar')">Grammar</button>
+
+<!-- TRANSLATOR -->
+<div id="translator">
+
+<h3>Speak</h3>
+
+<input id="speakText">
+
+<select id="speakLang">
+
+<option value="en">English</option>
+<option value="ar">Arabic</option>
+
+</select>
+
+<button onclick="speak()">Speak</button>
+
+<h3>Translate</h3>
+
+<input id="translateText">
+
+<select id="targetLang">
+
+<option value="ar">Arabic</option>
+<option value="en">English</option>
+
+</select>
+
+<button onclick="translate()">Translate</button>
+
+<p id="translateResult"></p>
+
+</div>
+
+
+<!-- EXERCISE -->
+
+<div id="exercise" class="hidden">
+
+<h3>Exercise</h3>
+
+<div id="question"></div>
+
+<button class="option" onclick="checkAnswer(this)"></button>
+<button class="option" onclick="checkAnswer(this)"></button>
+<button class="option" onclick="checkAnswer(this)"></button>
+<button class="option" onclick="checkAnswer(this)"></button>
+
+<p id="exerciseResult"></p>
+
+</div>
+
+
+<!-- GRAMMAR -->
+
+<div id="grammar" class="hidden">
+
+<h3>Grammar</h3>
+
+<select onchange="showGrammar(this.value)">
+
+<option value="present">Present Simple</option>
+<option value="past">Past Simple</option>
+<option value="future">Future</option>
+
+</select>
+
+<p id="grammarText"></p>
+
+</div>
+
+</div>
+
+<script>
+
+// TAB SYSTEM
+
+function showTab(tab){
+
+document.getElementById("translator").classList.add("hidden");
+document.getElementById("exercise").classList.add("hidden");
+document.getElementById("grammar").classList.add("hidden");
+
+document.getElementById(tab).classList.remove("hidden");
+
+}
+
+
+// SPEAK
+
+function speak(){
+
+let text=document.getElementById("speakText").value;
+let lang=document.getElementById("speakLang").value;
+
+let audio=new Audio(
+"https://translate.google.com/translate_tts?ie=UTF-8&q="
++encodeURIComponent(text)
++"&tl="+lang
++"&client=tw-ob"
+);
+
+audio.play();
+
+}
+
+
+// TRANSLATE
+
+function translate(){
+
+let text=document.getElementById("translateText").value;
+let target=document.getElementById("targetLang").value;
+
+fetch(
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
++target+"&dt=t&q="+encodeURIComponent(text)
+)
+.then(res=>res.json())
+.then(data=>{
+
+document.getElementById("translateResult").innerText=
+data[0][0][0];
+
+});
+
+}
+
+
+// EXERCISE
+
+let words={
+car:"سيارة",
+apple:"تفاحة",
+book:"كتاب",
+water:"ماء",
+house:"بيت",
+sun:"شمس"
+};
+
+let keys=Object.keys(words);
+let correctAnswer;
+
+function newQuestion(){
+
+let word=keys[Math.floor(Math.random()*keys.length)];
+
+correctAnswer=words[word];
+
+document.getElementById("question").innerText=
+"Translate: "+word;
+
+let options=[correctAnswer];
+
+while(options.length<4){
+
+let random=words[
+keys[Math.floor(Math.random()*keys.length)]
+];
+
+if(!options.includes(random)){
+options.push(random);
+}
+
+}
+
+options.sort(()=>Math.random()-0.5);
+
+let buttons=document.getElementsByClassName("option");
+
+for(let i=0;i<4;i++){
+buttons[i].innerText=options[i];
+}
+
+}
+
+function checkAnswer(btn){
+
+if(btn.innerText==correctAnswer){
+
+document.getElementById("exerciseResult").innerText="Correct";
+
+}else{
+
+document.getElementById("exerciseResult").innerText="Wrong";
+
+}
+
+setTimeout(newQuestion,1000);
+
+}
+
+newQuestion();
+
+
+// GRAMMAR
+
+function showGrammar(type){
+
+let text="";
+
+if(type=="present"){
+text="Present Simple: I eat, You eat, He eats";
+}
+
+if(type=="past"){
+text="Past Simple: I ate, You ate, He ate";
+}
+
+if(type=="future"){
+text="Future: I will eat";
+}
+
+document.getElementById("grammarText").innerText=text;
+
+}
+
+showGrammar("present");
+
+</script>
+
+</body>
+</html>
 
 
 
