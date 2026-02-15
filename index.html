@@ -3,88 +3,52 @@
 <head>
 <meta charset="UTF-8">
 <title>Lingo-AX</title>
-
-<style>
-body{
-font-family: Arial;
-text-align:center;
-background:#0f172a;
-color:white;
-}
-
-input{
-padding:10px;
-margin:10px;
-width:250px;
-}
-
-button{
-padding:10px 20px;
-margin:5px;
-cursor:pointer;
-background:#22c55e;
-color:white;
-border:none;
-}
-
-#result{
-margin-top:20px;
-font-size:20px;
-}
-</style>
-
 </head>
 <body>
 
 <h1>Lingo-AX</h1>
 
-<h3>Speak any language</h3>
-
-<input id="word" placeholder="Enter word">
+<!-- SPEAK -->
+<input id="word" placeholder="Enter text">
 <button onclick="speak()">Speak</button>
 
 <br><br>
 
-<h3>Translate any language</h3>
+<!-- TRANSLATE -->
+<input id="text" placeholder="Enter text to translate">
 
-<input id="translateWord" placeholder="Enter word">
-<button onclick="translate()">Translate</button>
+<select id="lang">
+<option value="ar">Arabic</option>
+<option value="en">English</option>
+<option value="fr">French</option>
+<option value="es">Spanish</option>
+<option value="de">German</option>
+</select>
 
-<div id="result"></div>
+<button onclick="translateText()">Translate</button>
+
+<p id="result"></p>
 
 <script>
 
-// SPEAK FUNCTION
 function speak(){
-
-var text = document.getElementById("word").value;
-
-if(text=="") return;
-
-var speech = new SpeechSynthesisUtterance(text);
-
+var text=document.getElementById("word").value;
+var speech=new SpeechSynthesisUtterance(text);
 speech.lang="auto";
-
-window.speechSynthesis.cancel();
-window.speechSynthesis.speak(speech);
-
+speechSynthesis.speak(speech);
 }
 
+async function translateText(){
 
-// TRANSLATE FUNCTION (REAL API)
-async function translate(){
-
-var text=document.getElementById("translateWord").value;
-
-if(text=="") return;
+var text=document.getElementById("text").value;
+var lang=document.getElementById("lang").value;
 
 var url="https://api.mymemory.translated.net/get?q="
 +encodeURIComponent(text)
-+"&langpair=auto|ar";
++"&langpair=auto|"+lang;
 
-var response=await fetch(url);
-
-var data=await response.json();
+var res=await fetch(url);
+var data=await res.json();
 
 document.getElementById("result").innerHTML=
 data.responseData.translatedText;
