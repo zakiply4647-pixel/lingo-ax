@@ -5,51 +5,52 @@
 <title>Lingo-AX</title>
 
 <style>
+
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
 color:white;
 text-align:center;
-padding:40px;
+padding:30px;
 }
 
 .container{
 background:rgba(0,0,0,0.3);
-padding:30px;
+padding:25px;
 border-radius:15px;
-width:350px;
+width:360px;
 margin:auto;
 }
 
 input,select,button{
 padding:10px;
-margin:6px;
-border-radius:8px;
+margin:5px;
 border:none;
+border-radius:8px;
 }
 
 button{
 background:#00ff88;
-cursor:pointer;
 font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#00cc66;
 }
 
 .option{
 display:block;
+width:100%;
 margin:5px;
 background:white;
 color:black;
 }
 
-.correct{
-color:#00ff88;
+#xp,#level{
 font-weight:bold;
 }
 
-.wrong{
-color:red;
-font-weight:bold;
-}
 </style>
 
 </head>
@@ -59,60 +60,72 @@ font-weight:bold;
 
 <h1>Lingo-AX</h1>
 
-<!-- النطق -->
-<input id="text" placeholder="Enter text">
+<h3 id="xp">XP: 0</h3>
+<h3 id="level">Level: 0</h3>
 
-<select id="lang">
+<hr>
+
+<!-- SPEAK -->
+
+<input id="speakText" placeholder="Enter text">
+
+<select id="speakLang">
+
 <option value="en">English</option>
 <option value="ar">Arabic</option>
 <option value="fr">French</option>
+
 </select>
 
 <br>
 
 <button onclick="speak()">Speak</button>
 
-<br><br>
+<hr>
 
-<!-- الترجمة -->
+<!-- TRANSLATE -->
+
 <input id="translateText" placeholder="Translate text">
 
 <select id="targetLang">
+
 <option value="ar">Arabic</option>
 <option value="en">English</option>
 <option value="fr">French</option>
+
 </select>
 
 <br>
 
 <button onclick="translateText()">Translate</button>
 
-<div id="result"></div>
+<p id="result"></p>
 
 <hr>
 
-<!-- التمارين -->
-<h2>Exercise</h2>
+<!-- EXERCISE -->
+
+<h3>Exercise</h3>
 
 <div id="question"></div>
 
 <button class="option" onclick="checkAnswer(this)"></button>
 <button class="option" onclick="checkAnswer(this)"></button>
 <button class="option" onclick="checkAnswer(this)"></button>
+<button class="option" onclick="checkAnswer(this)"></button>
 
-<div id="exerciseResult"></div>
-
-<button onclick="newQuestion()">Next Question</button>
+<p id="exerciseResult"></p>
 
 </div>
 
 <script>
 
-// النطق (يعمل على كل الأجهزة)
+// ================= SPEAK =================
+
 function speak(){
 
-let text=document.getElementById("text").value;
-let lang=document.getElementById("lang").value;
+let text=document.getElementById("speakText").value;
+let lang=document.getElementById("speakLang").value;
 
 let audio=new Audio(
 "https://translate.google.com/translate_tts?ie=UTF-8&q="
@@ -126,7 +139,8 @@ audio.play();
 }
 
 
-// الترجمة
+// ================= TRANSLATE =================
+
 function translateText(){
 
 let text=document.getElementById("translateText").value;
@@ -144,44 +158,95 @@ document.getElementById("result").innerText=data[0][0][0];
 }
 
 
-// بيانات التمارين
-let exercises=[
+// ================= XP SYSTEM =================
 
-{
-question:"car",
-correct:"سيارة",
-options:["تفاحة","سيارة","كتاب"]
-},
+let xp=localStorage.getItem("xp") || 0;
+xp=parseInt(xp);
 
-{
-question:"apple",
-correct:"تفاحة",
-options:["تفاحة","قلم","باب"]
-},
+let level=Math.floor(xp/100);
 
-{
-question:"book",
-correct:"كتاب",
-options:["بيت","كتاب","ماء"]
+function updateXP(){
+
+document.getElementById("xp").innerText="XP: "+xp;
+document.getElementById("level").innerText="Level: "+level;
+
+localStorage.setItem("xp",xp);
+
 }
 
-];
-
-let current;
+updateXP();
 
 
-// سؤال جديد
+// ================= WORDS =================
+
+let words={
+
+car:"سيارة",
+apple:"تفاحة",
+book:"كتاب",
+water:"ماء",
+house:"بيت",
+sun:"شمس",
+moon:"قمر",
+food:"طعام",
+school:"مدرسة",
+friend:"صديق",
+computer:"حاسوب",
+phone:"هاتف",
+tree:"شجرة",
+door:"باب",
+city:"مدينة",
+sea:"بحر",
+teacher:"معلم",
+student:"طالب",
+road:"طريق",
+sky:"سماء"
+
+};
+
+let keys=Object.keys(words);
+
+let correctAnswer;
+
+
+// ================= NEW QUESTION =================
+
 function newQuestion(){
 
-current=exercises[Math.floor(Math.random()*exercises.length)];
+let randomIndex=
+Math.floor(Math.random()*keys.length);
+
+let word=keys[randomIndex];
+
+correctAnswer=words[word];
 
 document.getElementById("question").innerText=
-"Translate: "+current.question;
+"Translate: "+word;
+
+
+// options
+
+let options=[correctAnswer];
+
+while(options.length<4){
+
+let random=
+words[keys[Math.floor(Math.random()*keys.length)]];
+
+if(!options.includes(random)){
+options.push(random);
+}
+
+}
+
+options.sort(()=>Math.random()-0.5);
 
 let buttons=document.getElementsByClassName("option");
 
-for(let i=0;i<3;i++){
-buttons[i].innerText=current.options[i];
+for(let i=0;i<4;i++){
+
+buttons[i].innerText=options[i];
+
 }
 
 document.getElementById("exerciseResult").innerText="";
@@ -189,29 +254,39 @@ document.getElementById("exerciseResult").innerText="";
 }
 
 
-// التحقق من الإجابة
-function checkAnswer(btn){
+// ================= CHECK ANSWER =================
 
-if(btn.innerText==current.correct){
+function checkAnswer(button){
+
+if(button.innerText==correctAnswer){
+
+xp+=10;
 
 document.getElementById("exerciseResult").innerHTML=
-"<span class='correct'>Correct ✔</span>";
+"<span style='color:#00ff88'>Correct +10 XP</span>";
 
 }else{
 
 document.getElementById("exerciseResult").innerHTML=
-"<span class='wrong'>Wrong ✘</span>";
+"<span style='color:red'>Wrong</span>";
 
 }
 
+level=Math.floor(xp/100);
+
+updateXP();
+
+setTimeout(newQuestion,1000);
+
 }
 
 
-// أول سؤال
+// start
 newQuestion();
 
 </script>
 
 </body>
 </html>
+
 
