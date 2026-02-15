@@ -8,21 +8,25 @@
 
 <h1>Lingo-AX</h1>
 
-<!-- SPEAK -->
-<input id="word" placeholder="Enter text">
+<!-- Speak -->
+<input id="text" placeholder="Enter text">
 <button onclick="speak()">Speak</button>
 
 <br><br>
 
-<!-- TRANSLATE -->
-<input id="text" placeholder="Enter text to translate">
+<!-- Translate -->
+<input id="translateText" placeholder="Enter text to translate">
 
-<select id="lang">
+<select id="targetLang">
 <option value="ar">Arabic</option>
 <option value="en">English</option>
 <option value="fr">French</option>
 <option value="es">Spanish</option>
 <option value="de">German</option>
+<option value="it">Italian</option>
+<option value="ru">Russian</option>
+<option value="ja">Japanese</option>
+<option value="zh">Chinese</option>
 </select>
 
 <button onclick="translateText()">Translate</button>
@@ -32,26 +36,25 @@
 <script>
 
 function speak(){
-var text=document.getElementById("word").value;
-var speech=new SpeechSynthesisUtterance(text);
-speech.lang="auto";
-speechSynthesis.speak(speech);
+var text = document.getElementById("text").value;
+var speech = new SpeechSynthesisUtterance(text);
+speech.lang = "auto";
+window.speechSynthesis.cancel();
+window.speechSynthesis.speak(speech);
 }
 
-async function translateText(){
+function translateText(){
 
-var text=document.getElementById("text").value;
-var lang=document.getElementById("lang").value;
+var text = document.getElementById("translateText").value;
+var target = document.getElementById("targetLang").value;
 
-var url="https://api.mymemory.translated.net/get?q="
-+encodeURIComponent(text)
-+"&langpair=auto|"+lang;
+fetch("https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + target + "&dt=t&q=" + encodeURIComponent(text))
+.then(response => response.json())
+.then(data => {
 
-var res=await fetch(url);
-var data=await res.json();
+document.getElementById("result").innerText = data[0][0][0];
 
-document.getElementById("result").innerHTML=
-data.responseData.translatedText;
+});
 
 }
 
