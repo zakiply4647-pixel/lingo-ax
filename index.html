@@ -11,18 +11,18 @@ font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
 color:white;
 text-align:center;
-padding:30px;
+padding:20px;
 }
 
 .container{
 background:rgba(0,0,0,0.3);
-padding:25px;
+padding:20px;
 border-radius:15px;
-width:360px;
+width:380px;
 margin:auto;
 }
 
-button,input,select{
+input,select,button{
 padding:10px;
 margin:5px;
 border-radius:8px;
@@ -42,6 +42,15 @@ background:white;
 color:black;
 }
 
+.tab{
+background:#ffffff33;
+margin:5px;
+}
+
+.hidden{
+display:none;
+}
+
 </style>
 
 </head>
@@ -51,183 +60,8 @@ color:black;
 
 <h1>Lingo-AX</h1>
 
-<h3 id="xp">XP: 0</h3>
-
-<hr>
-
-<input id="text" placeholder="Enter text">
-
-<select id="lang">
-
-<option value="en">English</option>
-<option value="ar">Arabic</option>
-<option value="fr">French</option>
-
-</select>
-
-<button onclick="speak()">Speak</button>
-
-<hr>
-
-<h3>Exercise</h3>
-
-<div id="question"></div>
-
-<button class="option" onclick="checkAnswer(this)"></button>
-<button class="option" onclick="checkAnswer(this)"></button>
-<button class="option" onclick="checkAnswer(this)"></button>
-<button class="option" onclick="checkAnswer(this)"></button>
-
-<p id="result"></p>
-
-</div>
-
-<script>
-
-// ================= XP =================
-
-let xp = localStorage.getItem("xp") || 0;
-xp = parseInt(xp);
-
-function updateXP(){
-document.getElementById("xp").innerText="XP: "+xp;
-localStorage.setItem("xp",xp);
-}
-
-updateXP();
-
-
-// ================= SPEAK (يعمل على كل الأجهزة) =================
-
-function speak(){
-
-let text=document.getElementById("text").value;
-let lang=document.getElementById("lang").value;
-
-let url="https://translate.google.com/translate_tts?ie=UTF-8&q="
-+encodeURIComponent(text)
-+"&tl="+lang
-+"&client=tw-ob";
-
-let audio=new Audio(url);
-
-audio.play().catch(()=>{
-
-// fallback
-let speech=new SpeechSynthesisUtterance(text);
-speech.lang=lang;
-speechSynthesis.speak(speech);
-
-});
-
-}
-
-
-// ================= كلمات لا نهائية =================
-
-let currentWord="";
-let correctAnswer="";
-
-async function newQuestion(){
-
-// جلب كلمة عشوائية من قاموس حقيقي
-
-let res=await fetch(
-"https://random-word-api.herokuapp.com/word"
-);
-
-let data=await res.json();
-
-currentWord=data[0];
-
-document.getElementById("question").innerText=
-"Translate: "+currentWord;
-
-
-// ترجمة الكلمة
-
-let transRes=await fetch(
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q="
-+currentWord
-);
-
-let transData=await transRes.json();
-
-correctAnswer=transData[0][0][0];
-
-
-// خيارات
-
-let options=[correctAnswer];
-
-while(options.length<4){
-
-let fakeRes=await fetch(
-"https://random-word-api.herokuapp.com/word"
-);
-
-let fakeData=await fakeRes.json();
-
-let fakeWord=fakeData[0];
-
-let fakeTransRes=await fetch(
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q="
-+fakeWord
-);
-
-let fakeTransData=await fakeTransRes.json();
-
-let fakeAnswer=fakeTransData[0][0][0];
-
-if(!options.includes(fakeAnswer)){
-options.push(fakeAnswer);
-}
-
-}
-
-options.sort(()=>Math.random()-0.5);
-
-let buttons=document.getElementsByClassName("option");
-
-for(let i=0;i<4;i++){
-buttons[i].innerText=options[i];
-}
-
-}
-
-
-// ================= CHECK =================
-
-function checkAnswer(btn){
-
-if(btn.innerText==correctAnswer){
-
-xp+=10;
-
-document.getElementById("result").innerText=
-"Correct +10 XP";
-
-}else{
-
-document.getElementById("result").innerText=
-"Wrong";
-
-}
-
-updateXP();
-
-setTimeout(newQuestion,1000);
-
-}
-
-
-// start
-newQuestion();
-
-</script>
-
-</body>
-</html>
+<button class="tab" onclick="showTab('translator')">Translator</button>
+<button class="tab
 
 
 
