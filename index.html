@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Learn English</h1>
+
+<input id="word" placeholder="Enter word">
+<button onclick="speak()">Speak</button>
+
+<br><br>
+
+<input id="translateWord" placeholder="Enter word to translate">
+<button onclick="translate()">Translate</button>
+
+<p id="result"></p>
+
+<script>
+
+var voices = [];
+
+speechSynthesis.onvoiceschanged = function() {
+  voices = speechSynthesis.getVoices();
+};
+
+function speak() {
+
+var text = document.getElementById("word").value;
+
+var speech = new SpeechSynthesisUtterance(text);
+
+if(voices.length > 0){
+speech.voice = voices[0];
+}
+
+speechSynthesis.speak(speech);
+
+}
+\
+
+
+function translate() {
+  var word = document.getElementById("translateWord").value;
+
+  if(word == "hello") {
+    document.getElementById("result").innerHTML = "مرحبا";
+  }
+  else if(word == "apple") {
+    document.getElementById("result").innerHTML = "تفاحة";
+  }
+  else if(word == "car") {
+    document.getElementById("result").innerHTML = "سيارة";
+  }
+  else {
+    document.getElementById("result").innerHTML = "Not found";
+  }
+}
+
+</script>
+
+</body>
+</html>
