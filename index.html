@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <title>Lingo-AX</title>
@@ -22,11 +22,11 @@ width:360px;
 margin:auto;
 }
 
-input,select,button{
+button,input,select{
 padding:10px;
 margin:5px;
-border:none;
 border-radius:8px;
+border:none;
 }
 
 button{
@@ -35,20 +35,11 @@ font-weight:bold;
 cursor:pointer;
 }
 
-button:hover{
-background:#00cc66;
-}
-
 .option{
 display:block;
 width:100%;
-margin:5px;
 background:white;
 color:black;
-}
-
-#xp,#level{
-font-weight:bold;
 }
 
 </style>
@@ -61,49 +52,22 @@ font-weight:bold;
 <h1>Lingo-AX</h1>
 
 <h3 id="xp">XP: 0</h3>
-<h3 id="level">Level: 0</h3>
 
 <hr>
 
-<!-- SPEAK -->
+<input id="text" placeholder="Enter text">
 
-<input id="speakText" placeholder="Enter text">
-
-<select id="speakLang">
+<select id="lang">
 
 <option value="en">English</option>
 <option value="ar">Arabic</option>
 <option value="fr">French</option>
 
 </select>
-
-<br>
 
 <button onclick="speak()">Speak</button>
 
 <hr>
-
-<!-- TRANSLATE -->
-
-<input id="translateText" placeholder="Translate text">
-
-<select id="targetLang">
-
-<option value="ar">Arabic</option>
-<option value="en">English</option>
-<option value="fr">French</option>
-
-</select>
-
-<br>
-
-<button onclick="translateText()">Translate</button>
-
-<p id="result"></p>
-
-<hr>
-
-<!-- EXERCISE -->
 
 <h3>Exercise</h3>
 
@@ -114,127 +78,109 @@ font-weight:bold;
 <button class="option" onclick="checkAnswer(this)"></button>
 <button class="option" onclick="checkAnswer(this)"></button>
 
-<p id="exerciseResult"></p>
+<p id="result"></p>
 
 </div>
 
 <script>
 
-// ================= SPEAK =================
+// ================= XP =================
 
-function speak(){
-
-let text=document.getElementById("speakText").value;
-let lang=document.getElementById("speakLang").value;
-
-let audio=new Audio(
-"https://translate.google.com/translate_tts?ie=UTF-8&q="
-+encodeURIComponent(text)
-+"&tl="+lang
-+"&client=tw-ob"
-);
-
-audio.play();
-
-}
-
-
-// ================= TRANSLATE =================
-
-function translateText(){
-
-let text=document.getElementById("translateText").value;
-let target=document.getElementById("targetLang").value;
-
-fetch(
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
-+target+"&dt=t&q="+encodeURIComponent(text)
-)
-.then(res=>res.json())
-.then(data=>{
-document.getElementById("result").innerText=data[0][0][0];
-});
-
-}
-
-
-// ================= XP SYSTEM =================
-
-let xp=localStorage.getItem("xp") || 0;
-xp=parseInt(xp);
-
-let level=Math.floor(xp/100);
+let xp = localStorage.getItem("xp") || 0;
+xp = parseInt(xp);
 
 function updateXP(){
-
 document.getElementById("xp").innerText="XP: "+xp;
-document.getElementById("level").innerText="Level: "+level;
-
 localStorage.setItem("xp",xp);
-
 }
 
 updateXP();
 
 
-// ================= WORDS =================
+// ================= SPEAK (يعمل على كل الأجهزة) =================
 
-let words={
+function speak(){
 
-car:"سيارة",
-apple:"تفاحة",
-book:"كتاب",
-water:"ماء",
-house:"بيت",
-sun:"شمس",
-moon:"قمر",
-food:"طعام",
-school:"مدرسة",
-friend:"صديق",
-computer:"حاسوب",
-phone:"هاتف",
-tree:"شجرة",
-door:"باب",
-city:"مدينة",
-sea:"بحر",
-teacher:"معلم",
-student:"طالب",
-road:"طريق",
-sky:"سماء"
+let text=document.getElementById("text").value;
+let lang=document.getElementById("lang").value;
 
-};
+let url="https://translate.google.com/translate_tts?ie=UTF-8&q="
++encodeURIComponent(text)
++"&tl="+lang
++"&client=tw-ob";
 
-let keys=Object.keys(words);
+let audio=new Audio(url);
 
-let correctAnswer;
+audio.play().catch(()=>{
+
+// fallback
+let speech=new SpeechSynthesisUtterance(text);
+speech.lang=lang;
+speechSynthesis.speak(speech);
+
+});
+
+}
 
 
-// ================= NEW QUESTION =================
+// ================= كلمات لا نهائية =================
 
-function newQuestion(){
+let currentWord="";
+let correctAnswer="";
 
-let randomIndex=
-Math.floor(Math.random()*keys.length);
+async function newQuestion(){
 
-let word=keys[randomIndex];
+// جلب كلمة عشوائية من قاموس حقيقي
 
-correctAnswer=words[word];
+let res=await fetch(
+"https://random-word-api.herokuapp.com/word"
+);
+
+let data=await res.json();
+
+currentWord=data[0];
 
 document.getElementById("question").innerText=
-"Translate: "+word;
+"Translate: "+currentWord;
 
 
-// options
+// ترجمة الكلمة
+
+let transRes=await fetch(
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q="
++currentWord
+);
+
+let transData=await transRes.json();
+
+correctAnswer=transData[0][0][0];
+
+
+// خيارات
 
 let options=[correctAnswer];
 
 while(options.length<4){
 
-let random=
-words[keys[Math.floor(Math.random()*keys.length)]];
+let fakeRes=await fetch(
+"https://random-word-api.herokuapp.com/word"
+);
 
-if(!options.includes(random)){
-options.push(random);
+let fakeData=await fakeRes.json();
+
+let fakeWord=fakeData[0];
+
+let fakeTransRes=await fetch(
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q="
++fakeWord
+);
+
+let fakeTransData=await fakeTransRes.json();
+
+let fakeAnswer=fakeTransData[0][0][0];
+
+if(!options.includes(fakeAnswer)){
+options.push(fakeAnswer);
 }
 
 }
@@ -244,35 +190,29 @@ options.sort(()=>Math.random()-0.5);
 let buttons=document.getElementsByClassName("option");
 
 for(let i=0;i<4;i++){
-
 buttons[i].innerText=options[i];
-
 }
-
-document.getElementById("exerciseResult").innerText="";
 
 }
 
 
-// ================= CHECK ANSWER =================
+// ================= CHECK =================
 
-function checkAnswer(button){
+function checkAnswer(btn){
 
-if(button.innerText==correctAnswer){
+if(btn.innerText==correctAnswer){
 
 xp+=10;
 
-document.getElementById("exerciseResult").innerHTML=
-"<span style='color:#00ff88'>Correct +10 XP</span>";
+document.getElementById("result").innerText=
+"Correct +10 XP";
 
 }else{
 
-document.getElementById("exerciseResult").innerHTML=
-"<span style='color:red'>Wrong</span>";
+document.getElementById("result").innerText=
+"Wrong";
 
 }
-
-level=Math.floor(xp/100);
 
 updateXP();
 
@@ -288,5 +228,6 @@ newQuestion();
 
 </body>
 </html>
+
 
 
