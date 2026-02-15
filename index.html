@@ -50,6 +50,11 @@ display:none;
 background:#334155;
 color:white;
 }
+
+#xp{
+color:#22c55e;
+font-weight:bold;
+}
 </style>
 
 </head>
@@ -99,6 +104,8 @@ color:white;
 <div id="exercise" class="hidden">
 
 <h3>Exercise: Choose Arabic meaning</h3>
+
+<p id="xp">XP: 0</p>
 
 <div id="question"></div>
 
@@ -183,7 +190,23 @@ data.responseData.translatedText;
 }
 
 
-// ================= 200 WORDS =================
+// ================= XP SYSTEM =================
+
+let xp = localStorage.getItem("xp") || 0;
+xp = parseInt(xp);
+
+function updateXP(){
+
+document.getElementById("xp").innerText="XP: "+xp;
+
+localStorage.setItem("xp", xp);
+
+}
+
+updateXP();
+
+
+// ================= WORDS =================
 
 let words = {
 
@@ -211,7 +234,7 @@ sky:"سماء"
 };
 
 
-// ================= بدون تكرار =================
+// ================= NO REPEAT =================
 
 let keys=Object.keys(words);
 let unused=[...keys];
@@ -233,11 +256,10 @@ unused.splice(index,1);
 
 correct=words[word];
 
-document.getElementById("question").innerText=
-word;
+document.getElementById("question").innerText=word;
 
 
-// خيارات عربية
+// options
 
 let options=[correct];
 
@@ -266,11 +288,17 @@ buttons[i].innerText=options[i];
 }
 
 
+// ================= CHECK =================
+
 function checkAnswer(btn){
 
 if(btn.innerText==correct){
 
-document.getElementById("exerciseResult").innerText="Correct";
+xp+=10;
+
+updateXP();
+
+document.getElementById("exerciseResult").innerText="Correct +10 XP";
 
 }else{
 
@@ -313,6 +341,7 @@ showGrammar("present");
 
 </body>
 </html>
+
 
 
 
