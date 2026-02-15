@@ -1,51 +1,94 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Lingo-AX</title>
 <meta charset="UTF-8">
+<title>Lingo-AX</title>
+
+<style>
+body{
+font-family: Arial;
+text-align:center;
+background:#0f172a;
+color:white;
+}
+
+input{
+padding:10px;
+margin:10px;
+width:250px;
+}
+
+button{
+padding:10px 20px;
+margin:5px;
+cursor:pointer;
+background:#22c55e;
+color:white;
+border:none;
+}
+
+#result{
+margin-top:20px;
+font-size:20px;
+}
+</style>
+
 </head>
 <body>
 
 <h1>Lingo-AX</h1>
+
+<h3>Speak any language</h3>
 
 <input id="word" placeholder="Enter word">
 <button onclick="speak()">Speak</button>
 
 <br><br>
 
-<input id="translateWord" placeholder="Enter word to translate">
+<h3>Translate any language</h3>
+
+<input id="translateWord" placeholder="Enter word">
 <button onclick="translate()">Translate</button>
 
-<p id="result"></p>
+<div id="result"></div>
 
 <script>
 
-function speak() {
-  var text = document.getElementById("word").value;
+// SPEAK FUNCTION
+function speak(){
 
-  var speech = new SpeechSynthesisUtterance(text);
+var text = document.getElementById("word").value;
 
-  speech.lang = "auto";
+if(text=="") return;
 
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(speech);
+var speech = new SpeechSynthesisUtterance(text);
+
+speech.lang="auto";
+
+window.speechSynthesis.cancel();
+window.speechSynthesis.speak(speech);
+
 }
 
-function translate() {
-  var word = document.getElementById("translateWord").value.toLowerCase();
 
-  if(word == "hello"){
-    document.getElementById("result").innerHTML = "مرحبا";
-  }
-  else if(word == "apple"){
-    document.getElementById("result").innerHTML = "تفاحة";
-  }
-  else if(word == "car"){
-    document.getElementById("result").innerHTML = "سيارة";
-  }
-  else{
-    document.getElementById("result").innerHTML = "Not found";
-  }
+// TRANSLATE FUNCTION (REAL API)
+async function translate(){
+
+var text=document.getElementById("translateWord").value;
+
+if(text=="") return;
+
+var url="https://api.mymemory.translated.net/get?q="
++encodeURIComponent(text)
++"&langpair=auto|ar";
+
+var response=await fetch(url);
+
+var data=await response.json();
+
+document.getElementById("result").innerHTML=
+data.responseData.translatedText;
+
 }
 
 </script>
