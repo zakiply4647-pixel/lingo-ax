@@ -2,36 +2,38 @@ body{
 
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
-margin:0;
-padding:20px;
 color:white;
+text-align:center;
+padding:20px;
 
 }
 
-.app{
-
-max-width:500px;
-margin:auto;
-
-}
-
-.card{
+.container{
 
 background:rgba(0,0,0,0.3);
 padding:20px;
-margin:10px 0;
-border-radius:10px;
+border-radius:15px;
+max-width:600px;
+margin:auto;
+margin-bottom:20px;
+
+}
+
+input,select,button{
+
+padding:12px;
+margin:5px;
+border-radius:8px;
+border:none;
+font-size:16px;
 
 }
 
 button{
 
-padding:10px;
-margin:5px;
-border:none;
-border-radius:5px;
 background:#00ff88;
 cursor:pointer;
+font-weight:bold;
 
 }
 
@@ -41,22 +43,18 @@ background:#00cc66;
 
 }
 
-.stats{
+.option{
 
-display:flex;
-justify-content:space-between;
-font-weight:bold;
-
-}
-
-.correct{
-
-background:green!important;
+display:block;
+width:100%;
+margin:6px;
 
 }
 
-.wrong{
+h1{
 
-background:red!important;
+font-size:40px;
 
 }
+
+
