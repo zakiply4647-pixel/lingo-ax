@@ -6,23 +6,29 @@
 
 <title>Lingo-AX Professional</title>
 
+<meta name="description" content="Lingo-AX language learning platform translator exercises voice grammar">
+
 <style>
+
+/* =========================
+GLOBAL STYLE
+========================= */
 
 body{
 font-family:Arial;
+margin:0;
+padding:0;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
-text-align:center;
 color:white;
-padding:20px;
+text-align:center;
 }
 
-.box{
-background:rgba(0,0,0,0.3);
+.container{
+background:rgba(0,0,0,0.25);
+margin:20px auto;
 padding:20px;
 border-radius:15px;
 max-width:500px;
-margin:auto;
-margin-bottom:20px;
 }
 
 input,select,button{
@@ -44,232 +50,269 @@ background:#00cc66;
 
 .option{
 display:block;
-width:100%;
-margin:5px;
+margin:5px auto;
+width:80%;
 }
 
 </style>
-
 </head>
 
 <body>
 
 <h1>Lingo-AX</h1>
 
+<div>
 XP: <span id="xp">0</span>
+&nbsp;&nbsp;
 Level: <span id="level">1</span>
+</div>
 
-<div class="box">
+<div class="container">
 
 <h2>Translator</h2>
 
-<input id="inputText" placeholder="Enter text">
+<input id="text" placeholder="Enter text">
 
 <select id="lang">
-
 <option value="ar">Arabic</option>
 <option value="en">English</option>
 <option value="fr">French</option>
 <option value="es">Spanish</option>
-
 </select>
 
 <br>
 
-<button onclick="translateText()">Translate</button>
-
+<button onclick="translate()">Translate</button>
 <button onclick="speak()">Speak</button>
 
-<p id="output"></p>
+<p id="result"></p>
 
 </div>
 
-<div class="box">
+<div class="container">
 
 <h2>Exercise</h2>
 
-<p id="question"></p>
+<p id="question">Press Start</p>
 
-<div id="answers"></div>
+<button onclick="speakQuestion()">Speak Question</button>
+
+<div id="options"></div>
+
+<br>
+
+<button onclick="nextQuestion()">Start</button>
 
 </div>
 
+<div class="container">
+
+<h2>Grammar</h2>
+
+<p id="grammar"></p>
+
+<button onclick="nextGrammar()">Next Grammar</button>
+
+</div>
 
 <script>
 
-/* XP */
+/* =========================
+XP SYSTEM
+========================= */
 
-let xp=localStorage.getItem("xp")||0;
+let xp = localStorage.getItem("xp") || 0;
+let level = localStorage.getItem("level") || 1;
 
-function updateXP(){
+document.getElementById("xp").innerText = xp;
+document.getElementById("level").innerText = level;
 
-document.getElementById("xp").innerText=xp;
-document.getElementById("level").innerText=Math.floor(xp/10)+1;
+function addXP(amount){
+
+xp = parseInt(xp) + amount;
+
+if(xp >= level*100){
+xp = 0;
+level++;
+}
+
+localStorage.setItem("xp",xp);
+localStorage.setItem("level",level);
+
+document.getElementById("xp").innerText = xp;
+document.getElementById("level").innerText = level;
 
 }
 
-updateXP();
+/* =========================
+TRANSLATOR
+========================= */
 
-/* REAL GOOGLE TRANSLATE */
+async function translate(){
 
-async function translateText(){
+let text = document.getElementById("text").value;
+let lang = document.getElementById("lang").value;
 
-let text=document.getElementById("inputText").value;
+if(text=="") return;
 
-let lang=document.getElementById("lang").value;
+let url =
+"https://api.mymemory.translated.net/get?q="
++ encodeURIComponent(text)
++ "&langpair=en|" + lang;
 
-if(text==""){
-alert("Enter text");
-return;
-}
+let res = await fetch(url);
 
-let url=
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
-+lang+
-"&dt=t&q="+encodeURIComponent(text);
+let data = await res.json();
 
-let res=await fetch(url);
-
-let data=await res.json();
-
-let translated=data[0][0][0];
-
-document.getElementById("output").innerText=translated;
+document.getElementById("result").innerText =
+data.responseData.translatedText;
 
 }
 
-/* SPEAK */
+/* =========================
+VOICE
+========================= */
 
 function speak(){
 
-let text=document.getElementById("inputText").value;
+let text = document.getElementById("text").value;
 
-let lang=document.getElementById("lang").value;
+let msg = new SpeechSynthesisUtterance(text);
 
-let utter=new SpeechSynthesisUtterance(text);
-
-utter.lang=lang;
-
-speechSynthesis.speak(utter);
+speechSynthesis.speak(msg);
 
 }
 
-/* WORD DATABASE */
+function speakQuestion(){
 
-let words=[
+let text = document.getElementById("question").innerText;
 
-{en:"car",ar:"سيارة"},
-{en:"apple",ar:"تفاحة"},
-{en:"dog",ar:"كلب"},
-{en:"cat",ar:"قطة"},
-{en:"house",ar:"منزل"},
-{en:"water",ar:"ماء"},
-{en:"food",ar:"طعام"},
-{en:"book",ar:"كتاب"},
-{en:"school",ar:"مدرسة"},
-{en:"friend",ar:"صديق"},
+let msg = new SpeechSynthesisUtterance(text);
 
-{en:"sun",ar:"شمس"},
-{en:"moon",ar:"قمر"},
-{en:"computer",ar:"حاسوب"},
-{en:"phone",ar:"هاتف"},
-{en:"table",ar:"طاولة"},
-{en:"chair",ar:"كرسي"},
-{en:"city",ar:"مدينة"},
-{en:"road",ar:"طريق"},
-{en:"tree",ar:"شجرة"},
-{en:"river",ar:"نهر"},
+speechSynthesis.speak(msg);
 
-{en:"milk",ar:"حليب"},
-{en:"bread",ar:"خبز"},
-{en:"teacher",ar:"معلم"},
-{en:"student",ar:"طالب"},
-{en:"music",ar:"موسيقى"},
-{en:"movie",ar:"فيلم"},
-{en:"game",ar:"لعبة"},
-{en:"language",ar:"لغة"},
-{en:"family",ar:"عائلة"},
-{en:"child",ar:"طفل"},
+}
 
-{en:"man",ar:"رجل"},
-{en:"woman",ar:"امرأة"},
-{en:"boy",ar:"ولد"},
-{en:"girl",ar:"بنت"},
-{en:"day",ar:"يوم"},
-{en:"night",ar:"ليل"},
-{en:"week",ar:"أسبوع"},
-{en:"month",ar:"شهر"},
-{en:"year",ar:"سنة"},
-{en:"time",ar:"وقت"},
+/* =========================
+WORD LIST 100 WORDS
+========================= */
 
-{en:"work",ar:"عمل"},
-{en:"job",ar:"وظيفة"},
-{en:"money",ar:"مال"},
-{en:"shop",ar:"متجر"},
-{en:"market",ar:"سوق"},
-{en:"bank",ar:"بنك"},
-{en:"hotel",ar:"فندق"},
-{en:"restaurant",ar:"مطعم"},
-{en:"hospital",ar:"مستشفى"},
-{en:"doctor",ar:"طبيب"},
+let words = [
 
-{en:"nurse",ar:"ممرضة"},
-{en:"police",ar:"شرطة"},
-{en:"fire",ar:"نار"},
-{en:"earth",ar:"أرض"},
-{en:"air",ar:"هواء"},
-{en:"sea",ar:"بحر"},
-{en:"mountain",ar:"جبل"},
-{en:"forest",ar:"غابة"},
-{en:"rain",ar:"مطر"},
-{en:"snow",ar:"ثلج"},
+["car","سيارة"],
+["apple","تفاحة"],
+["dog","كلب"],
+["cat","قطة"],
+["book","كتاب"],
+["house","منزل"],
+["water","ماء"],
+["food","طعام"],
+["school","مدرسة"],
+["teacher","معلم"],
 
-{en:"hot",ar:"حار"},
-{en:"cold",ar:"بارد"},
-{en:"big",ar:"كبير"},
-{en:"small",ar:"صغير"},
-{en:"fast",ar:"سريع"},
-{en:"slow",ar:"بطيء"},
-{en:"good",ar:"جيد"},
-{en:"bad",ar:"سيء"},
-{en:"new",ar:"جديد"},
-{en:"old",ar:"قديم"},
+["sun","شمس"],
+["moon","قمر"],
+["star","نجمة"],
+["tree","شجرة"],
+["road","طريق"],
+["phone","هاتف"],
+["computer","حاسوب"],
+["city","مدينة"],
+["friend","صديق"],
+["family","عائلة"],
 
-{en:"open",ar:"مفتوح"},
-{en:"close",ar:"مغلق"},
-{en:"start",ar:"يبدأ"},
-{en:"stop",ar:"يتوقف"},
-{en:"run",ar:"يجري"},
-{en:"walk",ar:"يمشي"},
-{en:"eat",ar:"يأكل"},
-{en:"drink",ar:"يشرب"},
-{en:"sleep",ar:"ينام"},
-{en:"wake",ar:"يستيقظ"},
+["man","رجل"],
+["woman","امرأة"],
+["child","طفل"],
+["love","حب"],
+["day","يوم"],
+["night","ليل"],
+["time","وقت"],
+["year","سنة"],
+["work","عمل"],
+["money","مال"],
 
-{en:"read",ar:"يقرأ"},
-{en:"write",ar:"يكتب"},
-{en:"listen",ar:"يستمع"},
-{en:"speak",ar:"يتكلم"},
-{en:"learn",ar:"يتعلم"},
-{en:"teach",ar:"يعلم"},
-{en:"play",ar:"يلعب"},
-{en:"watch",ar:"يشاهد"},
-{en:"love",ar:"يحب"},
-{en:"like",ar:"يعجب"}
+["music","موسيقى"],
+["movie","فيلم"],
+["game","لعبة"],
+["ball","كرة"],
+["door","باب"],
+["window","نافذة"],
+["chair","كرسي"],
+["table","طاولة"],
+["bed","سرير"],
+["room","غرفة"],
+
+["air","هواء"],
+["fire","نار"],
+["earth","أرض"],
+["sea","بحر"],
+["river","نهر"],
+["mountain","جبل"],
+["sky","سماء"],
+["rain","مطر"],
+["snow","ثلج"],
+["wind","ريح"],
+
+["red","أحمر"],
+["blue","أزرق"],
+["green","أخضر"],
+["black","أسود"],
+["white","أبيض"],
+["yellow","أصفر"],
+["fast","سريع"],
+["slow","بطيء"],
+["big","كبير"],
+["small","صغير"],
+
+["happy","سعيد"],
+["sad","حزين"],
+["good","جيد"],
+["bad","سيء"],
+["new","جديد"],
+["old","قديم"],
+["young","شاب"],
+["strong","قوي"],
+["weak","ضعيف"],
+["easy","سهل"],
+
+["hard","صعب"],
+["open","مفتوح"],
+["close","مغلق"],
+["run","يجري"],
+["walk","يمشي"],
+["eat","يأكل"],
+["drink","يشرب"],
+["sleep","ينام"],
+["read","يقرأ"],
+["write","يكتب"],
+
+["listen","يستمع"],
+["speak","يتحدث"],
+["learn","يتعلم"],
+["play","يلعب"],
+["watch","يشاهد"],
+["buy","يشتري"],
+["sell","يبيع"],
+["drive","يقود"],
+["travel","يسافر"],
+["live","يعيش"]
 
 ];
 
-let used=[];
+/* =========================
+EXERCISE SYSTEM
+========================= */
 
-let current;
+let used = [];
 
-/* EXERCISE */
+let correctWord;
 
-function newQuestion(){
+function nextQuestion(){
 
-if(used.length==words.length){
+if(used.length == words.length){
 
-used=[];
+used = [];
 
 }
 
@@ -277,23 +320,29 @@ let index;
 
 do{
 
-index=Math.floor(Math.random()*words.length);
+index = Math.floor(Math.random()*words.length);
 
-}while(used.includes(index));
+}
+while(used.includes(index));
 
 used.push(index);
 
-current=words[index];
+correctWord = words[index];
 
-document.getElementById("question").innerText=current.en;
+document.getElementById("question").innerText =
+correctWord[0];
 
-let options=[current.ar];
+let options = [];
 
-while(options.length<4){
+options.push(correctWord[1]);
 
-let rand=words[Math.floor(Math.random()*words.length)].ar;
+while(options.length < 4){
 
-if(!options.includes(rand)) options.push(rand);
+let rand =
+words[Math.floor(Math.random()*words.length)][1];
+
+if(!options.includes(rand))
+options.push(rand);
 
 }
 
@@ -303,40 +352,68 @@ let html="";
 
 options.forEach(opt=>{
 
-html+=`<button class="option" onclick="answer('${opt}')">${opt}</button>`;
+html +=
+'<button class="option" onclick="answer(this)">'
++ opt +
+'</button>';
 
 });
 
-document.getElementById("answers").innerHTML=html;
+document.getElementById("options").innerHTML = html;
 
 }
 
-function answer(choice){
+function answer(btn){
 
-if(choice==current.ar){
+if(btn.innerText == correctWord[1]){
 
-xp++;
+addXP(10);
 
-localStorage.setItem("xp",xp);
+btn.style.background="green";
 
-updateXP();
+}
+else{
 
-alert("Correct");
-
-}else{
-
-alert("Wrong");
+btn.style.background="red";
 
 }
 
-newQuestion();
-
 }
 
-newQuestion();
+/* =========================
+GRAMMAR
+========================= */
+
+let grammar = [
+
+"Present simple: I eat",
+"Past simple: I ate",
+"Future: I will eat",
+"Verb to be: I am",
+"He is",
+"They are",
+"I was",
+"I were",
+"Do / Does",
+"Did"
+
+];
+
+let gIndex=0;
+
+function nextGrammar(){
+
+document.getElementById("grammar").innerText =
+grammar[gIndex];
+
+gIndex++;
+
+if(gIndex>=grammar.length)
+gIndex=0;
+
+}
 
 </script>
 
 </body>
 </html>
-
