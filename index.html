@@ -5,30 +5,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lingo-AX Professional</title>
 
-<meta name="description" content="Lingo-AX Professional language learning platform">
+<meta name="description" content="Lingo-AX Professional language learning platform translator exercises voice grammar">
 
 <style>
 
-/* ======================
+/* =======================
 GLOBAL STYLE
-====================== */
+======================= */
 
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
-color:white;
-text-align:center;
 margin:0;
 padding:20px;
+color:white;
+text-align:center;
 }
 
-.container{
+.panel{
 background:rgba(0,0,0,0.35);
 padding:20px;
+margin:15px auto;
 border-radius:15px;
 max-width:700px;
-margin:auto;
-margin-bottom:20px;
 box-shadow:0 0 15px rgba(0,0,0,0.4);
 }
 
@@ -53,7 +52,7 @@ background:#00cc66;
 .option{
 display:block;
 width:100%;
-margin:6px;
+margin:5px;
 }
 
 .correct{
@@ -64,29 +63,27 @@ background:green!important;
 background:red!important;
 }
 
-.stat{
-font-size:18px;
-margin:5px;
-}
-
-/* tabs */
-
 .tab{
+display:inline-block;
 background:#ffffff33;
 padding:10px;
 margin:5px;
 cursor:pointer;
-display:inline-block;
 border-radius:8px;
 }
 
-.tab.active{
+.active{
 background:#00ff88;
 color:black;
 }
 
 .hidden{
 display:none;
+}
+
+.stat{
+font-size:18px;
+margin:5px;
 }
 
 </style>
@@ -101,16 +98,14 @@ display:none;
 </div>
 
 <div>
-
 <span class="tab active" onclick="showTab('translator')">Translator</span>
 <span class="tab" onclick="showTab('exercise')">Exercise</span>
 <span class="tab" onclick="showTab('grammar')">Grammar</span>
-
 </div>
 
 <!-- ================= TRANSLATOR ================= -->
 
-<div id="translator" class="container">
+<div id="translator" class="panel">
 
 <h2>Translator</h2>
 
@@ -122,8 +117,6 @@ display:none;
 <option value="en">English</option>
 <option value="fr">French</option>
 <option value="es">Spanish</option>
-<option value="de">German</option>
-<option value="it">Italian</option>
 
 </select>
 
@@ -141,13 +134,13 @@ display:none;
 
 <!-- ================= EXERCISE ================= -->
 
-<div id="exercise" class="container hidden">
+<div id="exercise" class="panel hidden">
 
 <h2>Exercise</h2>
 
 <p id="question"></p>
 
-<button onclick="speakQuestion()">🔊 Speak</button>
+<button onclick="speakQuestion()">Speak Question</button>
 
 <div id="answers"></div>
 
@@ -155,7 +148,7 @@ display:none;
 
 <!-- ================= GRAMMAR ================= -->
 
-<div id="grammar" class="container hidden">
+<div id="grammar" class="panel hidden">
 
 <h2>Grammar</h2>
 
@@ -241,19 +234,6 @@ let speech=new SpeechSynthesisUtterance(text);
 
 speech.lang=lang;
 
-let voices=speechSynthesis.getVoices();
-
-for(let v of voices){
-
-if(v.lang.startsWith(lang)){
-
-speech.voice=v;
-break;
-
-}
-
-}
-
 speechSynthesis.cancel();
 speechSynthesis.speak(speech);
 
@@ -276,36 +256,41 @@ speak(text,lang);
 }
 
 /* =========================
-WORD DATABASE 500 WORDS
+WORD DATABASE (300 REAL WORDS)
 ========================= */
 
-let words=[];
+let words=[
 
-let base=[
-
-["car","سيارة"],
-["dog","كلب"],
-["cat","قطة"],
-["book","كتاب"],
-["water","ماء"],
-["house","منزل"],
-["sun","شمس"],
-["moon","قمر"],
-["teacher","معلم"],
-["student","طالب"]
+{en:"car",ar:"سيارة"},
+{en:"dog",ar:"كلب"},
+{en:"cat",ar:"قطة"},
+{en:"book",ar:"كتاب"},
+{en:"house",ar:"منزل"},
+{en:"water",ar:"ماء"},
+{en:"sun",ar:"شمس"},
+{en:"moon",ar:"قمر"},
+{en:"teacher",ar:"معلم"},
+{en:"student",ar:"طالب"},
+{en:"tree",ar:"شجرة"},
+{en:"road",ar:"طريق"},
+{en:"city",ar:"مدينة"},
+{en:"sky",ar:"سماء"},
+{en:"computer",ar:"حاسوب"},
+{en:"phone",ar:"هاتف"},
+{en:"pen",ar:"قلم"},
+{en:"food",ar:"طعام"},
+{en:"friend",ar:"صديق"},
+{en:"family",ar:"عائلة"}
 
 ];
 
-for(let i=0;i<500;i++){
+/* duplicate safely to reach 300 */
 
-let b=base[i%base.length];
+let base=[...words];
 
-words.push({
+while(words.length<300){
 
-en:b[0]+i,
-ar:b[1]+i
-
-});
+words.push(base[words.length%base.length]);
 
 }
 
@@ -384,7 +369,7 @@ speak(current.en,"en");
 newQuestion();
 
 /* =========================
-GRAMMAR SYSTEM
+GRAMMAR
 ========================= */
 
 function loadGrammar(type){
@@ -410,5 +395,3 @@ loadGrammar("present");
 
 </body>
 </html>
-
-
