@@ -1,158 +1,176 @@
-//////////////////// XP SYSTEM ////////////////////
+////////////////
+// XP SYSTEM
+////////////////
 
-let xp = parseInt(localStorage.getItem("xp")) || 0;
+let xp=localStorage.getItem("xp") || 0;
 
 function updateXP(){
 
-document.getElementById("xp").innerText="XP: "+xp;
-document.getElementById("level").innerText="Level: "+(Math.floor(xp/100)+1);
-
-localStorage.setItem("xp",xp);
+document.getElementById("xp").innerText=xp;
+document.getElementById("level").innerText=Math.floor(xp/100)+1;
 
 }
-
-updateXP();
 
 function addXP(){
 
-xp+=10;
+xp=parseInt(xp)+10;
+localStorage.setItem("xp",xp);
 updateXP();
 
 }
 
-//////////////////// TRANSLATOR ////////////////////
+updateXP();
 
-function translate(){
 
-let text=document.getElementById("translateInput").value;
+////////////////
+// SPEAK SYSTEM
+////////////////
 
-let lang=document.getElementById("targetLang").value;
-
-fetch(
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
-+lang+"&dt=t&q="+encodeURIComponent(text)
-)
-.then(res=>res.json())
-.then(data=>{
-
-document.getElementById("translateOutput").innerText=data[0][0][0];
-
-});
-
-}
-
-//////////////////// SPEAK ////////////////////
-
-function speak(text){
+function speak(text,lang){
 
 let speech=new SpeechSynthesisUtterance(text);
 
-speech.lang="en";
+speech.lang=lang;
+
+let voices=speechSynthesis.getVoices();
+
+for(let voice of voices){
+
+if(voice.lang.startsWith(lang)){
+
+speech.voice=voice;
+break;
+
+}
+
+}
 
 speechSynthesis.cancel();
 speechSynthesis.speak(speech);
 
 }
 
-function speakOutput(){
+function speakInput(){
 
-let text=document.getElementById("translateOutput").innerText;
-
-speak(text);
+let text=document.getElementById("inputText").value;
+speak(text,"en");
 
 }
 
-//////////////////// WORD API ////////////////////
+function speakOutput(){
 
-let usedWords=[];
-let currentWord="";
-let correctAnswer="";
+let text=document.getElementById("outputText").innerText;
+let lang=document.getElementById("targetLang").value;
 
-async function loadQuestion(){
+speak(text,lang);
+
+}
+
+
+////////////////
+// TRANSLATOR
+////////////////
+
+async function translate(){
+
+let text=document.getElementById("inputText").value;
+let lang=document.getElementById("targetLang").value;
 
 let res=await fetch(
-"https://random-word-api.herokuapp.com/word"
+
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
++lang+
+"&dt=t&q="+encodeURIComponent(text)
+
 );
 
 let data=await res.json();
 
-currentWord=data[0];
-
-document.getElementById("question").innerText=currentWord;
-
-correctAnswer=currentWord;
-
-loadAnswers();
+document.getElementById("outputText").innerText=data[0][0][0];
 
 }
 
-function loadAnswers(){
 
-let answers=[correctAnswer];
+////////////////
+// WORDS
+////////////////
 
-while(answers.length<4){
+let words=[];
 
-answers.push("word"+Math.floor(Math.random()*50000));
+let base=[
 
-}
+["car","سيارة"],
+["dog","كلب"],
+["cat","قطة"],
+["book","كتاب"],
+["house","منزل"]
 
-answers.sort(()=>Math.random()-0.5);
+];
 
-let html="";
+for(let i=0;i<200;i++){
 
-answers.forEach(ans=>{
+let w=base[i%base.length];
 
-html+=`<button onclick="checkAnswer(this,'${ans}')">${ans}</button>`;
+words.push({
+
+en:w[0]+i,
+ar:w[1]+i
 
 });
 
-document.getElementById("answers").innerHTML=html;
+}
+
+
+////////////////
+// EXERCISE
+////////////////
+
+let current;
+
+function newQuestion(){
+
+current=words[Math.floor(Math.random()*words.length)];
+
+document.getElementById("question").innerText=current.en;
+
+let options=[current.ar];
+
+while(options.length<4){
+
+let random=words[Math.floor(Math.random()*words.length)].ar;
+
+if(!options.includes(random))
+options.push(random);
 
 }
 
-function checkAnswer(btn,ans){
+options.sort(()=>Math.random()-0.5);
 
-if(ans==correctAnswer){
+let btns=document.getElementsByClassName("option");
 
-btn.classList.add("correct");
+for(let i=0;i<4;i++){
+
+btns[i].innerText=options[i];
+
+}
+
+}
+
+function choose(btn){
+
+if(btn.innerText==current.ar){
 
 addXP();
+alert("Correct");
 
 }else{
 
-btn.classList.add("wrong");
+alert("Wrong");
 
 }
 
-setTimeout(loadQuestion,1000);
+newQuestion();
 
 }
 
-function speakQuestion(){
-
-speak(currentWord);
-
-}
-
-loadQuestion();
-
-//////////////////// GRAMMAR ////////////////////
-
-function loadGrammar(type){
-
-let text="";
-
-if(type=="present")
-text="Present Simple: I eat, You eat, He eats";
-
-if(type=="past")
-text="Past Simple: I ate, You ate";
-
-if(type=="future")
-text="Future: I will eat";
-
-document.getElementById("grammarOutput").innerText=text;
-
-}
-
-loadGrammar("present");
+newQuestion();
