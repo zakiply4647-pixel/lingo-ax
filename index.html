@@ -1,22 +1,57 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Lingo-AX</title>
 
-<link rel="stylesheet" href="style.css">
+<style>
+
+body{
+font-family:Arial;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+color:white;
+text-align:center;
+padding:20px;
+}
+
+.container{
+background:rgba(0,0,0,0.3);
+padding:20px;
+border-radius:15px;
+max-width:500px;
+margin:auto;
+margin-bottom:20px;
+}
+
+button,input,select{
+padding:10px;
+margin:5px;
+border-radius:8px;
+border:none;
+}
+
+button{
+background:#00ff88;
+cursor:pointer;
+}
+
+.option{
+display:block;
+width:100%;
+margin:5px;
+}
+
+</style>
 
 </head>
-
 <body>
 
 <h1>Lingo-AX</h1>
 
 XP: <span id="xp">0</span>
-|
 Level: <span id="level">1</span>
 
 <div class="container">
@@ -26,20 +61,15 @@ Level: <span id="level">1</span>
 <input id="inputText">
 
 <select id="targetLang">
-
 <option value="ar">Arabic</option>
 <option value="en">English</option>
-<option value="fr">French</option>
-
 </select>
 
 <br>
 
 <button onclick="translate()">Translate</button>
 
-<button onclick="speakInput()">Speak Input</button>
-
-<button onclick="speakOutput()">Speak Output</button>
+<button onclick="speak()">Speak</button>
 
 <p id="outputText"></p>
 
@@ -51,17 +81,120 @@ Level: <span id="level">1</span>
 
 <p id="question"></p>
 
-<button class="option" onclick="choose(this)"></button>
-<button class="option" onclick="choose(this)"></button>
-<button class="option" onclick="choose(this)"></button>
-<button class="option" onclick="choose(this)"></button>
+<button class="option" onclick="answer(this)"></button>
+<button class="option" onclick="answer(this)"></button>
+<button class="option" onclick="answer(this)"></button>
+<button class="option" onclick="answer(this)"></button>
 
 </div>
 
-<script src="script.js"></script>
+<script>
+
+let xp = localStorage.getItem("xp") || 0;
+
+updateXP();
+
+function updateXP(){
+
+document.getElementById("xp").innerText=xp;
+document.getElementById("level").innerText=Math.floor(xp/100)+1;
+
+}
+
+function addXP(){
+
+xp=parseInt(xp)+10;
+localStorage.setItem("xp",xp);
+updateXP();
+
+}
+
+function speak(){
+
+let text=document.getElementById("outputText").innerText;
+
+let speech=new SpeechSynthesisUtterance(text);
+
+speechSynthesis.speak(speech);
+
+}
+
+async function translate(){
+
+let text=document.getElementById("inputText").value;
+
+let lang=document.getElementById("targetLang").value;
+
+let res=await fetch(
+
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
++lang+"&dt=t&q="+encodeURIComponent(text)
+
+);
+
+let data=await res.json();
+
+document.getElementById("outputText").innerText=data[0][0][0];
+
+}
+
+let words=[
+["car","سيارة"],
+["dog","كلب"],
+["book","كتاب"],
+["water","ماء"],
+["house","منزل"]
+];
+
+let current;
+
+function newQuestion(){
+
+current=words[Math.floor(Math.random()*words.length)];
+
+document.getElementById("question").innerText=current[0];
+
+let options=[current[1]];
+
+while(options.length<4){
+
+let random=words[Math.floor(Math.random()*words.length)][1];
+
+if(!options.includes(random))
+options.push(random);
+
+}
+
+options.sort(()=>Math.random()-0.5);
+
+let btns=document.getElementsByClassName("option");
+
+for(let i=0;i<4;i++)
+btns[i].innerText=options[i];
+
+}
+
+function answer(btn){
+
+if(btn.innerText==current[1]){
+
+addXP();
+alert("Correct");
+
+}else{
+
+alert("Wrong");
+
+}
+
+newQuestion();
+
+}
+
+newQuestion();
+
+</script>
 
 </body>
-
 </html>
-
 
