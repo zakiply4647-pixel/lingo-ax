@@ -7,11 +7,11 @@
 
 <title>Lingo-AX Professional</title>
 
-<meta name="description" content="Lingo-AX Professional translator exercises voice grammar">
+<meta name="description" content="Lingo-AX Professional translator voice exercises grammar">
 
 <style>
 
-/* ================= GLOBAL ================= */
+/* ================= DESIGN ================= */
 
 body{
 margin:0;
@@ -22,34 +22,55 @@ text-align:center;
 }
 
 .container{
-background:rgba(0,0,0,0.3);
+background:rgba(0,0,0,0.35);
 margin:20px auto;
 padding:20px;
 border-radius:15px;
 max-width:500px;
+box-shadow:0 0 20px rgba(0,0,0,0.3);
 }
 
 input,select,button{
+
 padding:12px;
 margin:6px;
 border:none;
 border-radius:8px;
 font-size:16px;
+
 }
 
 button{
+
 background:#00ff88;
 cursor:pointer;
+
 }
 
 button:hover{
+
 background:#00cc66;
+
 }
 
 .option{
+
 display:block;
 margin:6px auto;
 width:80%;
+
+}
+
+.correct{
+
+background:green!important;
+
+}
+
+.wrong{
+
+background:red!important;
+
 }
 
 </style>
@@ -60,10 +81,14 @@ width:80%;
 <h1>Lingo-AX</h1>
 
 <div>
+
 XP: <span id="xp">0</span>
 &nbsp;&nbsp;
 Level: <span id="level">1</span>
+
 </div>
+
+<!-- ================= TRANSLATOR ================= -->
 
 <div class="container">
 
@@ -71,21 +96,25 @@ Level: <span id="level">1</span>
 
 <input id="text" placeholder="Enter text">
 
-<select id="lang">
+<select id="target">
+
 <option value="ar">Arabic</option>
 <option value="en">English</option>
 <option value="fr">French</option>
 <option value="es">Spanish</option>
+
 </select>
 
 <br>
 
 <button onclick="translate()">Translate</button>
-<button onclick="speak()">Speak</button>
+<button onclick="speakText()">Speak</button>
 
 <p id="result"></p>
 
 </div>
+
+<!-- ================= EXERCISE ================= -->
 
 <div class="container">
 
@@ -97,45 +126,45 @@ Level: <span id="level">1</span>
 
 <div id="options"></div>
 
-<br>
-
 <button onclick="nextQuestion()">Start</button>
 
 </div>
+
+<!-- ================= GRAMMAR ================= -->
 
 <div class="container">
 
 <h2>Grammar</h2>
 
-<p id="grammar"></p>
+<p id="grammar">Press button</p>
 
-<button onclick="nextGrammar()">Next Grammar</button>
+<button onclick="nextGrammar()">Next</button>
 
 </div>
 
 <script>
 
-/* ================= XP SYSTEM ================= */
+/* ================= SAVE SYSTEM ================= */
 
-let xp = parseInt(localStorage.getItem("xp") || 0);
-let level = parseInt(localStorage.getItem("level") || 1);
+let xp = parseInt(localStorage.getItem("xp")||0);
+let level = parseInt(localStorage.getItem("level")||1);
 
 updateXP();
 
 function updateXP(){
 
-document.getElementById("xp").innerText = xp;
-document.getElementById("level").innerText = level;
+document.getElementById("xp").innerText=xp;
+document.getElementById("level").innerText=level;
 
 }
 
-function addXP(amount){
+function addXP(){
 
-xp += amount;
+xp+=10;
 
-if(xp >= level*100){
+if(xp>=level*100){
 
-xp = 0;
+xp=0;
 level++;
 
 }
@@ -147,32 +176,33 @@ updateXP();
 
 }
 
-/* ================= TRANSLATOR ================= */
+/* ================= TRANSLATOR REAL ================= */
 
 async function translate(){
 
-let text = document.getElementById("text").value.trim();
-let lang = document.getElementById("lang").value;
+let text=document.getElementById("text").value;
+let target=document.getElementById("target").value;
 
-if(!text) return;
+if(!text)return;
 
 try{
 
-let res = await fetch(
+let url=
 "https://api.mymemory.translated.net/get?q="
-+ encodeURIComponent(text)
-+ "&langpair=en|" + lang
-);
++encodeURIComponent(text)
++"&langpair=en|"+target;
 
-let data = await res.json();
+let res=await fetch(url);
 
-document.getElementById("result").innerText =
+let data=await res.json();
+
+document.getElementById("result").innerText=
 data.responseData.translatedText;
 
 }catch{
 
-document.getElementById("result").innerText =
-"Translation failed";
+document.getElementById("result").innerText=
+"Error";
 
 }
 
@@ -180,47 +210,45 @@ document.getElementById("result").innerText =
 
 /* ================= VOICE ================= */
 
-function speak(){
+function speak(text){
 
-let text = document.getElementById("text").value;
-
-if(!text) return;
-
-let msg = new SpeechSynthesisUtterance(text);
+let msg=new SpeechSynthesisUtterance(text);
 
 speechSynthesis.cancel();
 speechSynthesis.speak(msg);
+
+}
+
+function speakText(){
+
+let text=document.getElementById("text").value;
+
+if(text)speak(text);
 
 }
 
 function speakQuestion(){
 
-let text = document.getElementById("question").innerText;
+let text=document.getElementById("question").innerText;
 
-let msg = new SpeechSynthesisUtterance(text);
-
-speechSynthesis.cancel();
-speechSynthesis.speak(msg);
+speak(text);
 
 }
 
-/* ================= WORD LIST ================= */
+/* ================= WORD LIST 100 WORDS ================= */
 
-let words = [
+let words=[
 
 ["car","سيارة"],
-["apple","تفاحة"],
 ["dog","كلب"],
 ["cat","قطة"],
+["apple","تفاحة"],
 ["book","كتاب"],
 ["house","منزل"],
 ["water","ماء"],
 ["food","طعام"],
-["school","مدرسة"],
-["teacher","معلم"],
 ["sun","شمس"],
 ["moon","قمر"],
-["star","نجمة"],
 ["tree","شجرة"],
 ["road","طريق"],
 ["phone","هاتف"],
@@ -306,43 +334,46 @@ let words = [
 ["take","يأخذ"],
 ["give","يعطي"],
 ["make","يصنع"],
-["find","يجد"]
+["find","يجد"],
+["start","يبدأ"],
+["end","ينتهي"],
+["help","يساعد"]
 
 ];
 
-let used = [];
+let used=[];
 let correct;
 
-/* ================= EXERCISE ================= */
+/* ================= EXERCISE SYSTEM ================= */
 
 function nextQuestion(){
 
-if(used.length === words.length)
-used = [];
+if(used.length==words.length)
+used=[];
 
 let index;
 
 do{
 
-index = Math.floor(Math.random()*words.length);
+index=Math.floor(Math.random()*words.length);
 
 }while(used.includes(index));
 
 used.push(index);
 
-correct = words[index];
+correct=words[index];
 
-document.getElementById("question").innerText = correct[0];
+document.getElementById("question").innerText=correct[0];
 
-let options = [correct[1]];
+let options=[correct[1]];
 
-while(options.length < 4){
+while(options.length<4){
 
-let random =
+let r=
 words[Math.floor(Math.random()*words.length)][1];
 
-if(!options.includes(random))
-options.push(random);
+if(!options.includes(r))
+options.push(r);
 
 }
 
@@ -350,26 +381,26 @@ options.sort(()=>Math.random()-0.5);
 
 let html="";
 
-options.forEach(opt=>{
+options.forEach(o=>{
 
-html += `<button class="option" onclick="answer(this)">${opt}</button>`;
+html+=`<button class="option" onclick="answer(this)">${o}</button>`;
 
 });
 
-document.getElementById("options").innerHTML = html;
+document.getElementById("options").innerHTML=html;
 
 }
 
 function answer(btn){
 
-if(btn.innerText === correct[1]){
+if(btn.innerText==correct[1]){
 
-btn.style.background="green";
-addXP(10);
+btn.classList.add("correct");
+addXP();
 
 }else{
 
-btn.style.background="red";
+btn.classList.add("wrong");
 
 }
 
@@ -377,32 +408,31 @@ btn.style.background="red";
 
 /* ================= GRAMMAR ================= */
 
-let grammar = [
+let grammar=[
 
 "Present simple: I eat",
 "Past simple: I ate",
-"Future: I will eat",
-"I am",
-"He is",
-"They are",
-"I was",
+"Future simple: I will eat",
+"I am / He is / They are",
 "Do / Does",
 "Did",
-"Verb + ing = present continuous"
+"Verb + ing",
+"I have eaten",
+"I had eaten",
+"I will have eaten"
 
 ];
 
-let gIndex=0;
+let g=0;
 
 function nextGrammar(){
 
-document.getElementById("grammar").innerText =
-grammar[gIndex];
+document.getElementById("grammar").innerText=grammar[g];
 
-gIndex++;
+g++;
 
-if(gIndex>=grammar.length)
-gIndex=0;
+if(g>=grammar.length)
+g=0;
 
 }
 
