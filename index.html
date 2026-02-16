@@ -1,80 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
+
 <head>
+
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>Lingo-AX | Professional</title>
+<title>Lingo-AX</title>
 
-<meta name="description" content="Lingo-AX translator, pronunciation, exercises and grammar learning platform">
-
-<style>
-
-body{
-font-family:Arial;
-background:linear-gradient(135deg,#4facfe,#00f2fe);
-color:white;
-text-align:center;
-padding:20px;
-}
-
-.container{
-background:rgba(0,0,0,0.3);
-padding:20px;
-border-radius:15px;
-max-width:500px;
-margin:auto;
-margin-bottom:20px;
-}
-
-input,select,button{
-padding:10px;
-margin:5px;
-border-radius:8px;
-border:none;
-}
-
-button{
-background:#00ff88;
-cursor:pointer;
-font-weight:bold;
-}
-
-button:hover{
-background:#00cc66;
-}
-
-.option{
-display:block;
-margin:5px;
-width:100%;
-}
-
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
+
 <body>
 
 <h1>Lingo-AX</h1>
 
-<div>
-XP: <span id="xp">0</span> |
+XP: <span id="xp">0</span>
+|
 Level: <span id="level">1</span>
-</div>
 
-<!-- TRANSLATOR -->
 <div class="container">
 
 <h2>Translator</h2>
 
-<input id="translateInput" placeholder="Enter text">
+<input id="inputText">
 
 <select id="targetLang">
 
 <option value="ar">Arabic</option>
 <option value="en">English</option>
 <option value="fr">French</option>
-<option value="es">Spanish</option>
 
 </select>
 
@@ -86,213 +41,27 @@ Level: <span id="level">1</span>
 
 <button onclick="speakOutput()">Speak Output</button>
 
-<p id="translateOutput"></p>
+<p id="outputText"></p>
 
 </div>
 
-<!-- EXERCISE -->
 <div class="container">
 
 <h2>Exercise</h2>
 
 <p id="question"></p>
 
-<button class="option" onclick="answer(this)"></button>
-<button class="option" onclick="answer(this)"></button>
-<button class="option" onclick="answer(this)"></button>
-<button class="option" onclick="answer(this)"></button>
+<button class="option" onclick="choose(this)"></button>
+<button class="option" onclick="choose(this)"></button>
+<button class="option" onclick="choose(this)"></button>
+<button class="option" onclick="choose(this)"></button>
 
 </div>
 
-<script>
-
-////////////////////////////
-// XP SYSTEM
-////////////////////////////
-
-let xp=localStorage.getItem("xp")||0;
-
-updateXP();
-
-function addXP(amount){
-
-xp=parseInt(xp)+amount;
-
-localStorage.setItem("xp",xp);
-
-updateXP();
-
-}
-
-function updateXP(){
-
-document.getElementById("xp").innerText=xp;
-
-document.getElementById("level").innerText=Math.floor(xp/100)+1;
-
-}
-
-////////////////////////////
-// SPEAK SYSTEM
-////////////////////////////
-
-function speak(text,lang="en"){
-
-let speech=new SpeechSynthesisUtterance(text);
-
-speech.lang=lang;
-
-let voices=speechSynthesis.getVoices();
-
-voices.forEach(v=>{
-
-if(v.lang.startsWith(lang)) speech.voice=v;
-
-});
-
-speechSynthesis.cancel();
-speechSynthesis.speak(speech);
-
-}
-
-function speakInput(){
-
-let text=document.getElementById("translateInput").value;
-
-speak(text,"en");
-
-}
-
-function speakOutput(){
-
-let text=document.getElementById("translateOutput").innerText;
-
-let lang=document.getElementById("targetLang").value;
-
-speak(text,lang);
-
-}
-
-////////////////////////////
-// TRANSLATE SYSTEM
-////////////////////////////
-
-async function translate(){
-
-let text=document.getElementById("translateInput").value;
-
-let target=document.getElementById("targetLang").value;
-
-let res=await fetch(
-
-"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
-+target+
-"&dt=t&q="+encodeURIComponent(text)
-
-);
-
-let data=await res.json();
-
-let translated=data[0][0][0];
-
-document.getElementById("translateOutput").innerText=translated;
-
-}
-
-////////////////////////////
-// WORD DATABASE (200 words)
-////////////////////////////
-
-let words=[
-
-{en:"car",ar:"سيارة"},
-{en:"house",ar:"منزل"},
-{en:"apple",ar:"تفاحة"},
-{en:"dog",ar:"كلب"},
-{en:"cat",ar:"قطة"},
-{en:"water",ar:"ماء"},
-{en:"food",ar:"طعام"},
-{en:"school",ar:"مدرسة"},
-{en:"book",ar:"كتاب"},
-{en:"sun",ar:"شمس"},
-{en:"moon",ar:"قمر"},
-{en:"computer",ar:"حاسوب"},
-{en:"phone",ar:"هاتف"},
-{en:"teacher",ar:"معلم"},
-{en:"student",ar:"طالب"},
-
-];
-
-// generate more fake words to reach 200
-
-for(let i=0;i<185;i++){
-
-words.push({
-
-en:"word"+i,
-
-ar:"كلمة"+i
-
-});
-
-}
-
-////////////////////////////
-// EXERCISE SYSTEM
-////////////////////////////
-
-let current;
-
-function newQuestion(){
-
-current=words[Math.floor(Math.random()*words.length)];
-
-document.getElementById("question").innerText=current.en;
-
-let options=[current.ar];
-
-while(options.length<4){
-
-let w=words[Math.floor(Math.random()*words.length)].ar;
-
-if(!options.includes(w)) options.push(w);
-
-}
-
-options.sort(()=>Math.random()-0.5);
-
-let btns=document.getElementsByClassName("option");
-
-for(let i=0;i<4;i++){
-
-btns[i].innerText=options[i];
-
-}
-
-}
-
-function answer(btn){
-
-if(btn.innerText==current.ar){
-
-addXP(10);
-
-alert("Correct +10 XP");
-
-}else{
-
-alert("Wrong");
-
-}
-
-newQuestion();
-
-}
-
-newQuestion();
-
-</script>
+<script src="script.js"></script>
 
 </body>
+
 </html>
+
 
