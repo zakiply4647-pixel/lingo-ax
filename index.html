@@ -6,63 +6,85 @@
 
 <title>Lingo-AX Professional</title>
 
-<meta name="description" content="Lingo-AX Translator Exercises Voice XP Level Grammar">
-
 <style>
+
+/* =========================
+GLOBAL STYLE
+========================= */
 
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
-color:white;
-text-align:center;
 margin:0;
-padding:20px;
+padding:0;
+text-align:center;
+color:white;
 }
 
 .container{
 background:rgba(0,0,0,0.3);
 padding:20px;
-border-radius:15px;
+margin:20px auto;
+width:90%;
 max-width:500px;
-margin:auto;
-margin-bottom:20px;
+border-radius:15px;
+box-shadow:0 0 20px rgba(0,0,0,0.3);
 }
 
-input,select{
+input,select,button{
+
 padding:10px;
 margin:5px;
-border-radius:8px;
 border:none;
+border-radius:8px;
+font-size:16px;
+
 }
 
 button{
-padding:10px 20px;
-margin:5px;
-border:none;
-border-radius:8px;
+
 background:#00ff88;
-font-weight:bold;
 cursor:pointer;
+font-weight:bold;
+
 }
 
 button:hover{
+
 background:#00cc66;
+
+}
+
+.option{
+
+display:block;
+margin:10px;
+width:90%;
+
 }
 
 </style>
+
 </head>
+
 <body>
 
 <h1>Lingo-AX</h1>
 
-<div>XP: <span id="xp">0</span></div>
-<div>Level: <span id="level">1</span></div>
+<div>
+XP: <span id="xp">0</span>
+Level: <span id="level">1</span>
+</div>
+
+<!-- =========================
+TRANSLATOR
+========================= -->
 
 <div class="container">
 
 <h2>Translator</h2>
 
-<input id="translateInput" placeholder="Enter word">
+<input id="translateInput" placeholder="Enter text">
 
 <select id="lang">
 
@@ -76,52 +98,53 @@ background:#00cc66;
 <br>
 
 <button onclick="translate()">Translate</button>
+
 <button onclick="speak()">Speak</button>
 
-<div id="result"></div>
+<p id="result"></p>
 
 </div>
 
+<!-- =========================
+EXERCISE
+========================= -->
 
 <div class="container">
 
 <h2>Exercise</h2>
 
-<div id="question"></div>
+<p id="question">loading...</p>
 
-<div id="answers"></div>
+<button class="option" onclick="answer(0)" id="opt0"></button>
+<button class="option" onclick="answer(1)" id="opt1"></button>
+<button class="option" onclick="answer(2)" id="opt2"></button>
+<button class="option" onclick="answer(3)" id="opt3"></button>
 
 </div>
 
-
-
 <script>
 
-////////////////////////////////
-// XP SYSTEM
-////////////////////////////////
+/* =========================
+XP SYSTEM
+========================= */
 
 let xp=localStorage.getItem("xp")||0;
 
-function updateXP(amount){
-
-xp=parseInt(xp)+amount;
-
-localStorage.setItem("xp",xp);
+function updateXP(){
 
 document.getElementById("xp").innerText=xp;
 
-document.getElementById("level").innerText=Math.floor(xp/100)+1;
+let level=Math.floor(xp/100)+1;
+
+document.getElementById("level").innerText=level;
 
 }
 
-updateXP(0);
+updateXP();
 
-
-
-////////////////////////////////
-// TRANSLATOR
-////////////////////////////////
+/* =========================
+TRANSLATE
+========================= */
 
 async function translate(){
 
@@ -129,79 +152,104 @@ let text=document.getElementById("translateInput").value;
 
 let lang=document.getElementById("lang").value;
 
-let url="https://api.mymemory.translated.net/get?q="+text+"&langpair=en|"+lang;
+try{
 
-let res=await fetch(url);
+let res=await fetch("https://translate.argosopentech.com/translate",{
+
+method:"POST",
+
+headers:{
+"Content-Type":"application/json"
+},
+
+body:JSON.stringify({
+
+q:text,
+source:"auto",
+target:lang
+
+})
+
+});
 
 let data=await res.json();
 
-document.getElementById("result").innerText=data.responseData.translatedText;
+document.getElementById("result").innerText=data.translatedText;
+
+}catch{
+
+document.getElementById("result").innerText="Error";
 
 }
 
+}
 
-
-////////////////////////////////
-// SPEECH
-////////////////////////////////
+/* =========================
+VOICE
+========================= */
 
 function speak(){
 
 let text=document.getElementById("translateInput").value;
 
-let lang=document.getElementById("lang").value;
+let speech=new SpeechSynthesisUtterance(text);
 
-let utter=new SpeechSynthesisUtterance(text);
+speech.lang=document.getElementById("lang").value;
 
-utter.lang=lang;
-
-speechSynthesis.speak(utter);
+speechSynthesis.speak(speech);
 
 }
 
-
-
-////////////////////////////////
-// WORD DATABASE
-////////////////////////////////
+/* =========================
+WORDS DATABASE
+========================= */
 
 let words=[
 
-{en:"car",ar:"سيارة"},
-{en:"apple",ar:"تفاحة"},
-{en:"book",ar:"كتاب"},
-{en:"house",ar:"منزل"},
-{en:"water",ar:"ماء"},
-{en:"food",ar:"طعام"},
-{en:"sun",ar:"شمس"},
-{en:"moon",ar:"قمر"},
-{en:"school",ar:"مدرسة"},
-{en:"friend",ar:"صديق"},
-
-{en:"computer",ar:"حاسوب"},
-{en:"phone",ar:"هاتف"},
-{en:"tree",ar:"شجرة"},
-{en:"river",ar:"نهر"},
-{en:"city",ar:"مدينة"},
-{en:"country",ar:"دولة"},
-{en:"music",ar:"موسيقى"},
-{en:"game",ar:"لعبة"},
-{en:"teacher",ar:"معلم"},
-{en:"student",ar:"طالب"}
+["car","سيارة"],
+["apple","تفاحة"],
+["dog","كلب"],
+["cat","قطة"],
+["house","منزل"],
+["water","ماء"],
+["food","طعام"],
+["book","كتاب"],
+["school","مدرسة"],
+["friend","صديق"],
+["sun","شمس"],
+["moon","قمر"],
+["computer","حاسوب"],
+["phone","هاتف"],
+["table","طاولة"],
+["chair","كرسي"],
+["city","مدينة"],
+["road","طريق"],
+["tree","شجرة"],
+["river","نهر"],
+["milk","حليب"],
+["bread","خبز"],
+["teacher","معلم"],
+["student","طالب"],
+["music","موسيقى"],
+["movie","فيلم"],
+["game","لعبة"],
+["language","لغة"],
+["family","عائلة"],
+["child","طفل"]
 
 ];
 
-
-
-////////////////////////////////
-// EXERCISE SYSTEM
-////////////////////////////////
+/* =========================
+EXERCISE SYSTEM
+========================= */
 
 let used=[];
 
+let correctIndex=0;
+
 function newQuestion(){
 
-if(used.length>=words.length){
+if(used.length==words.length){
 
 used=[];
 
@@ -217,45 +265,45 @@ index=Math.floor(Math.random()*words.length);
 
 used.push(index);
 
-let correct=words[index];
+let word=words[index];
 
-document.getElementById("question").innerText=correct.en;
+document.getElementById("question").innerText=word[0];
 
-let options=[correct.ar];
+correctIndex=Math.floor(Math.random()*4);
 
-while(options.length<4){
+for(let i=0;i<4;i++){
 
-let rand=words[Math.floor(Math.random()*words.length)].ar;
+let btn=document.getElementById("opt"+i);
 
-if(!options.includes(rand)) options.push(rand);
+if(i==correctIndex){
 
-}
+btn.innerText=word[1];
 
-options.sort(()=>Math.random()-0.5);
-
-let html="";
-
-options.forEach(opt=>{
-
-html+=`<button onclick="answer('${opt}','${correct.ar}')">${opt}</button>`;
-
-});
-
-document.getElementById("answers").innerHTML=html;
-
-}
-
-function answer(choice,correct){
-
-if(choice==correct){
-
-updateXP(10);
-
-alert("Correct");
+btn.correct=true;
 
 }else{
 
-alert("Wrong");
+btn.innerText=words[Math.floor(Math.random()*words.length)][1];
+
+btn.correct=false;
+
+}
+
+}
+
+}
+
+function answer(i){
+
+let btn=document.getElementById("opt"+i);
+
+if(btn.correct){
+
+xp++;
+
+localStorage.setItem("xp",xp);
+
+updateXP();
 
 }
 
