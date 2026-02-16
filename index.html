@@ -1,347 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+
 <meta charset="UTF-8">
-<title>Lingo-AX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-text-align:center;
-padding:20px;
-}
+<title>Lingo-AX | Professional</title>
 
-.container{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-width:400px;
-margin:auto;
-}
-
-button,input,select{
-padding:10px;
-margin:5px;
-border-radius:8px;
-border:none;
-}
-
-button{
-background:#22c55e;
-color:white;
-cursor:pointer;
-}
-
-.option{
-display:block;
-width:100%;
-background:white;
-color:black;
-margin:5px;
-}
-
-.hidden{
-display:none;
-}
-
-.tab{
-background:#334155;
-color:white;
-}
-
-#xp{
-color:#22c55e;
-font-weight:bold;
-}
-</style>
+<link rel="stylesheet" href="style.css">
 
 </head>
 <body>
 
-<div class="container">
+<div class="app">
 
 <h1>Lingo-AX</h1>
 
-<button class="tab" onclick="showTab('translator')">Translator</button>
-<button class="tab" onclick="showTab('exercise')">Exercise</button>
-<button class="tab" onclick="showTab('grammar')">Grammar</button>
+<div class="stats">
+<span id="xp">XP: 0</span>
+<span id="level">Level: 1</span>
+</div>
 
-<!-- TRANSLATOR -->
+<div class="card">
 
-<div id="translator">
+<h2>Translator</h2>
 
-<h3>Speak</h3>
-
-<input id="speakText">
-
-<select id="speakLang">
-<option value="en">English</option>
-<option value="ar">Arabic</option>
-</select>
-
-<button onclick="speak()">Speak</button>
-
-<h3>Translate</h3>
-
-<input id="translateText">
+<input id="translateInput" placeholder="Enter text">
 
 <select id="targetLang">
+
 <option value="ar">Arabic</option>
 <option value="en">English</option>
+<option value="fr">French</option>
+<option value="es">Spanish</option>
+
 </select>
 
-<button onclick="translateText()">Translate</button>
+<button onclick="translate()">Translate</button>
 
-<p id="translateResult"></p>
+<p id="translateOutput"></p>
 
-</div>
-
-
-<!-- EXERCISE -->
-
-<div id="exercise" class="hidden">
-
-<h3>Exercise: Choose Arabic meaning</h3>
-
-<p id="xp">XP: 0</p>
-
-<div id="question"></div>
-
-<button class="option" onclick="checkAnswer(this)"></button>
-<button class="option" onclick="checkAnswer(this)"></button>
-<button class="option" onclick="checkAnswer(this)"></button>
-<button class="option" onclick="checkAnswer(this)"></button>
-
-<p id="exerciseResult"></p>
+<button onclick="speakOutput()">Speak</button>
 
 </div>
 
+<div class="card">
 
-<!-- GRAMMAR -->
+<h2>Exercise</h2>
 
-<div id="grammar" class="hidden">
+<p id="question">Loading...</p>
 
-<h3>Grammar</h3>
+<button onclick="speakQuestion()">🔊 Speak Question</button>
 
-<select onchange="showGrammar(this.value)">
+<div id="answers"></div>
+
+</div>
+
+<div class="card">
+
+<h2>Grammar</h2>
+
+<select onchange="loadGrammar(this.value)">
+
 <option value="present">Present Simple</option>
 <option value="past">Past Simple</option>
 <option value="future">Future</option>
+
 </select>
 
-<p id="grammarText"></p>
+<p id="grammarOutput"></p>
 
 </div>
 
 </div>
 
-<script>
-
-// ================= TAB =================
-
-function showTab(tab){
-
-document.getElementById("translator").classList.add("hidden");
-document.getElementById("exercise").classList.add("hidden");
-document.getElementById("grammar").classList.add("hidden");
-
-document.getElementById(tab).classList.remove("hidden");
-
-}
-
-
-// ================= SPEAK =================
-
-function speak(){
-
-let text=document.getElementById("speakText").value;
-let lang=document.getElementById("speakLang").value;
-
-let speech=new SpeechSynthesisUtterance(text);
-speech.lang=lang;
-
-speechSynthesis.cancel();
-speechSynthesis.speak(speech);
-
-}
-
-
-// ================= TRANSLATE =================
-
-function translateText(){
-
-let text=document.getElementById("translateText").value;
-let target=document.getElementById("targetLang").value;
-
-fetch("https://api.mymemory.translated.net/get?q="
-+encodeURIComponent(text)
-+"&langpair=en|"+target)
-
-.then(res=>res.json())
-.then(data=>{
-
-document.getElementById("translateResult").innerText=
-data.responseData.translatedText;
-
-});
-
-}
-
-
-// ================= XP SYSTEM =================
-
-let xp = localStorage.getItem("xp") || 0;
-xp = parseInt(xp);
-
-function updateXP(){
-
-document.getElementById("xp").innerText="XP: "+xp;
-
-localStorage.setItem("xp", xp);
-
-}
-
-updateXP();
-
-
-// ================= WORDS =================
-
-let words = {
-
-car:"سيارة",
-apple:"تفاحة",
-book:"كتاب",
-water:"ماء",
-house:"بيت",
-sun:"شمس",
-moon:"قمر",
-food:"طعام",
-school:"مدرسة",
-friend:"صديق",
-computer:"حاسوب",
-phone:"هاتف",
-tree:"شجرة",
-door:"باب",
-city:"مدينة",
-sea:"بحر",
-teacher:"معلم",
-student:"طالب",
-road:"طريق",
-sky:"سماء"
-
-};
-
-
-// ================= NO REPEAT =================
-
-let keys=Object.keys(words);
-let unused=[...keys];
-let correct="";
-
-function newQuestion(){
-
-if(unused.length==0){
-
-unused=[...keys];
-
-}
-
-let index=Math.floor(Math.random()*unused.length);
-
-let word=unused[index];
-
-unused.splice(index,1);
-
-correct=words[word];
-
-document.getElementById("question").innerText=word;
-
-
-// options
-
-let options=[correct];
-
-while(options.length<4){
-
-let random=words[
-keys[Math.floor(Math.random()*keys.length)]
-];
-
-if(!options.includes(random)){
-options.push(random);
-}
-
-}
-
-options.sort(()=>Math.random()-0.5);
-
-let buttons=document.getElementsByClassName("option");
-
-for(let i=0;i<4;i++){
-
-buttons[i].innerText=options[i];
-
-}
-
-}
-
-
-// ================= CHECK =================
-
-function checkAnswer(btn){
-
-if(btn.innerText==correct){
-
-xp+=10;
-
-updateXP();
-
-document.getElementById("exerciseResult").innerText="Correct +10 XP";
-
-}else{
-
-document.getElementById("exerciseResult").innerText="Wrong";
-
-}
-
-setTimeout(newQuestion,1000);
-
-}
-
-newQuestion();
-
-
-// ================= GRAMMAR =================
-
-function showGrammar(type){
-
-let text="";
-
-if(type=="present"){
-text="Present Simple: I eat, You eat, He eats";
-}
-
-if(type=="past"){
-text="Past Simple: I ate";
-}
-
-if(type=="future"){
-text="Future: I will eat";
-}
-
-document.getElementById("grammarText").innerText=text;
-
-}
-
-showGrammar("present");
-
-</script>
+<script src="script.js"></script>
 
 </body>
 </html>
-
-
-
-
