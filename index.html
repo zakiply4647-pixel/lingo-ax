@@ -1,135 +1,228 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lingo-AX Professional</title>
 
-<title>Lingo-AX</title>
+<meta name="description" content="Lingo-AX Professional language learning platform">
 
 <style>
+
+/* ======================
+GLOBAL STYLE
+====================== */
 
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
 color:white;
 text-align:center;
+margin:0;
 padding:20px;
 }
 
 .container{
-background:rgba(0,0,0,0.3);
+background:rgba(0,0,0,0.35);
 padding:20px;
 border-radius:15px;
-max-width:500px;
+max-width:700px;
 margin:auto;
 margin-bottom:20px;
+box-shadow:0 0 15px rgba(0,0,0,0.4);
 }
 
 button,input,select{
-padding:10px;
-margin:5px;
+padding:12px;
+margin:6px;
 border-radius:8px;
 border:none;
+font-size:16px;
 }
 
 button{
 background:#00ff88;
 cursor:pointer;
+font-weight:bold;
+}
+
+button:hover{
+background:#00cc66;
 }
 
 .option{
 display:block;
 width:100%;
+margin:6px;
+}
+
+.correct{
+background:green!important;
+}
+
+.wrong{
+background:red!important;
+}
+
+.stat{
+font-size:18px;
 margin:5px;
 }
 
-</style>
+/* tabs */
 
+.tab{
+background:#ffffff33;
+padding:10px;
+margin:5px;
+cursor:pointer;
+display:inline-block;
+border-radius:8px;
+}
+
+.tab.active{
+background:#00ff88;
+color:black;
+}
+
+.hidden{
+display:none;
+}
+
+</style>
 </head>
 <body>
 
-<h1>Lingo-AX</h1>
+<h1>Lingo-AX Professional</h1>
 
-XP: <span id="xp">0</span>
-Level: <span id="level">1</span>
+<div>
+<span class="stat">XP: <span id="xp">0</span></span>
+<span class="stat">Level: <span id="level">1</span></span>
+</div>
 
-<div class="container">
+<div>
+
+<span class="tab active" onclick="showTab('translator')">Translator</span>
+<span class="tab" onclick="showTab('exercise')">Exercise</span>
+<span class="tab" onclick="showTab('grammar')">Grammar</span>
+
+</div>
+
+<!-- ================= TRANSLATOR ================= -->
+
+<div id="translator" class="container">
 
 <h2>Translator</h2>
 
-<input id="inputText">
+<input id="inputText" placeholder="Enter text">
 
 <select id="targetLang">
+
 <option value="ar">Arabic</option>
 <option value="en">English</option>
+<option value="fr">French</option>
+<option value="es">Spanish</option>
+<option value="de">German</option>
+<option value="it">Italian</option>
+
 </select>
 
 <br>
 
 <button onclick="translate()">Translate</button>
 
-<button onclick="speak()">Speak</button>
+<button onclick="speakInput()">Speak Input</button>
+
+<button onclick="speakOutput()">Speak Output</button>
 
 <p id="outputText"></p>
 
 </div>
 
-<div class="container">
+<!-- ================= EXERCISE ================= -->
+
+<div id="exercise" class="container hidden">
 
 <h2>Exercise</h2>
 
 <p id="question"></p>
 
-<button class="option" onclick="answer(this)"></button>
-<button class="option" onclick="answer(this)"></button>
-<button class="option" onclick="answer(this)"></button>
-<button class="option" onclick="answer(this)"></button>
+<button onclick="speakQuestion()">🔊 Speak</button>
+
+<div id="answers"></div>
+
+</div>
+
+<!-- ================= GRAMMAR ================= -->
+
+<div id="grammar" class="container hidden">
+
+<h2>Grammar</h2>
+
+<select onchange="loadGrammar(this.value)">
+
+<option value="present">Present Simple</option>
+<option value="past">Past Simple</option>
+<option value="future">Future</option>
+
+</select>
+
+<p id="grammarText"></p>
 
 </div>
 
 <script>
 
-let xp = localStorage.getItem("xp") || 0;
+/* =========================
+XP SYSTEM
+========================= */
 
-updateXP();
+let xp=parseInt(localStorage.getItem("xp"))||0;
 
 function updateXP(){
 
 document.getElementById("xp").innerText=xp;
 document.getElementById("level").innerText=Math.floor(xp/100)+1;
 
+localStorage.setItem("xp",xp);
+
 }
 
 function addXP(){
 
-xp=parseInt(xp)+10;
-localStorage.setItem("xp",xp);
+xp+=10;
 updateXP();
 
 }
 
-function speak(){
+updateXP();
 
-let text=document.getElementById("outputText").innerText;
+/* =========================
+TAB SYSTEM
+========================= */
 
-let speech=new SpeechSynthesisUtterance(text);
+function showTab(tab){
 
-speechSynthesis.speak(speech);
+document.getElementById("translator").classList.add("hidden");
+document.getElementById("exercise").classList.add("hidden");
+document.getElementById("grammar").classList.add("hidden");
+
+document.getElementById(tab).classList.remove("hidden");
 
 }
+
+/* =========================
+TRANSLATOR
+========================= */
 
 async function translate(){
 
 let text=document.getElementById("inputText").value;
-
 let lang=document.getElementById("targetLang").value;
 
 let res=await fetch(
-
 "https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
 +lang+"&dt=t&q="+encodeURIComponent(text)
-
 );
 
 let data=await res.json();
@@ -138,63 +231,184 @@ document.getElementById("outputText").innerText=data[0][0][0];
 
 }
 
-let words=[
+/* =========================
+VOICE SYSTEM
+========================= */
+
+function speak(text,lang){
+
+let speech=new SpeechSynthesisUtterance(text);
+
+speech.lang=lang;
+
+let voices=speechSynthesis.getVoices();
+
+for(let v of voices){
+
+if(v.lang.startsWith(lang)){
+
+speech.voice=v;
+break;
+
+}
+
+}
+
+speechSynthesis.cancel();
+speechSynthesis.speak(speech);
+
+}
+
+function speakInput(){
+
+let text=document.getElementById("inputText").value;
+speak(text,"en");
+
+}
+
+function speakOutput(){
+
+let text=document.getElementById("outputText").innerText;
+let lang=document.getElementById("targetLang").value;
+
+speak(text,lang);
+
+}
+
+/* =========================
+WORD DATABASE 500 WORDS
+========================= */
+
+let words=[];
+
+let base=[
+
 ["car","سيارة"],
 ["dog","كلب"],
+["cat","قطة"],
 ["book","كتاب"],
 ["water","ماء"],
-["house","منزل"]
+["house","منزل"],
+["sun","شمس"],
+["moon","قمر"],
+["teacher","معلم"],
+["student","طالب"]
+
 ];
 
+for(let i=0;i<500;i++){
+
+let b=base[i%base.length];
+
+words.push({
+
+en:b[0]+i,
+ar:b[1]+i
+
+});
+
+}
+
+/* =========================
+EXERCISE SYSTEM
+========================= */
+
+let used=[];
 let current;
 
 function newQuestion(){
 
-current=words[Math.floor(Math.random()*words.length)];
+if(used.length>=words.length) used=[];
 
-document.getElementById("question").innerText=current[0];
+let index;
 
-let options=[current[1]];
+do{
+
+index=Math.floor(Math.random()*words.length);
+
+}while(used.includes(index));
+
+used.push(index);
+
+current=words[index];
+
+document.getElementById("question").innerText=current.en;
+
+let options=[current.ar];
 
 while(options.length<4){
 
-let random=words[Math.floor(Math.random()*words.length)][1];
+let random=words[Math.floor(Math.random()*words.length)].ar;
 
-if(!options.includes(random))
-options.push(random);
+if(!options.includes(random)) options.push(random);
 
 }
 
 options.sort(()=>Math.random()-0.5);
 
-let btns=document.getElementsByClassName("option");
+let html="";
 
-for(let i=0;i<4;i++)
-btns[i].innerText=options[i];
+options.forEach(opt=>{
+
+html+=`<button class="option" onclick="answer(this,'${opt}')">${opt}</button>`;
+
+});
+
+document.getElementById("answers").innerHTML=html;
 
 }
 
-function answer(btn){
+function answer(btn,ans){
 
-if(btn.innerText==current[1]){
+if(ans==current.ar){
 
+btn.classList.add("correct");
 addXP();
-alert("Correct");
 
 }else{
 
-alert("Wrong");
+btn.classList.add("wrong");
+
+}
+
+setTimeout(newQuestion,1000);
+
+}
+
+function speakQuestion(){
+
+speak(current.en,"en");
 
 }
 
 newQuestion();
 
+/* =========================
+GRAMMAR SYSTEM
+========================= */
+
+function loadGrammar(type){
+
+let text="";
+
+if(type=="present")
+text="Present Simple: I eat, You eat, He eats";
+
+if(type=="past")
+text="Past Simple: I ate";
+
+if(type=="future")
+text="Future: I will eat";
+
+document.getElementById("grammarText").innerText=text;
+
 }
 
-newQuestion();
+loadGrammar("present");
 
 </script>
 
 </body>
 </html>
+
 
