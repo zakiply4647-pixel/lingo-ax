@@ -1,31 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Lingo-AX Professional</title>
 
-<meta name="description" content="Lingo-AX Translator Exercises Voice Grammar">
-
 <style>
 
 body{
-font-family:Arial;
-margin:0;
-background:linear-gradient(135deg,#4facfe,#00f2fe);
+font-family: Arial;
+background: linear-gradient(135deg,#4facfe,#00f2fe);
 color:white;
 text-align:center;
+padding:20px;
 }
 
-.container{
-background:rgba(0,0,0,0.3);
-padding:25px;
+.box{
+background: rgba(0,0,0,0.3);
+padding:20px;
 margin:20px auto;
-width:90%;
-max-width:500px;
 border-radius:15px;
+max-width:400px;
 }
 
 input,select,button{
@@ -33,7 +29,6 @@ padding:10px;
 margin:5px;
 border-radius:8px;
 border:none;
-font-size:16px;
 }
 
 button{
@@ -45,17 +40,6 @@ button:hover{
 background:#00cc66;
 }
 
-#result{
-margin-top:10px;
-font-size:20px;
-}
-
-.option{
-display:block;
-margin:5px auto;
-width:80%;
-}
-
 </style>
 
 </head>
@@ -63,49 +47,40 @@ width:80%;
 
 <h1>Lingo-AX</h1>
 
-<div>
-XP: <span id="xp">0</span>
-Level: <span id="level">1</span>
-</div>
+<div>XP: <span id="xp">0</span> | Level: <span id="level">1</span></div>
 
-<!-- Translator -->
-
-<div class="container">
+<div class="box">
 
 <h2>Translator</h2>
 
-<input id="text" placeholder="Enter text">
+<input id="text" placeholder="Enter word">
 
 <select id="target">
-
 <option value="ar">Arabic</option>
-<option value="en">English</option>
 <option value="fr">French</option>
 <option value="es">Spanish</option>
-
+<option value="de">German</option>
 </select>
 
 <br>
 
 <button onclick="translateText()">Translate</button>
-
-<button onclick="speak()">Speak</button>
+<button onclick="speakText()">Speak</button>
 
 <div id="result"></div>
 
 </div>
 
-<!-- Exercise -->
 
-<div class="container">
+<div class="box">
 
 <h2>Exercise</h2>
 
 <div id="question">Press Start</div>
 
 <button onclick="speakQuestion()">Speak Question</button>
-
-<div id="options"></div>
+<br>
+<div id="choices"></div>
 
 <button onclick="startExercise()">Start</button>
 
@@ -113,186 +88,98 @@ Level: <span id="level">1</span>
 
 <script>
 
-//////////////////////////////
-// XP SYSTEM
-//////////////////////////////
+let xp=0;
+let level=1;
 
-let xp = localStorage.getItem("xp") || 0;
+let words=[
+{en:"car",ar:"سيارة"},
+{en:"house",ar:"منزل"},
+{en:"book",ar:"كتاب"},
+{en:"water",ar:"ماء"},
+{en:"food",ar:"طعام"},
+{en:"sun",ar:"شمس"},
+{en:"moon",ar:"قمر"},
+{en:"school",ar:"مدرسة"},
+{en:"teacher",ar:"معلم"},
+{en:"student",ar:"طالب"},
+{en:"chair",ar:"كرسي"},
+{en:"table",ar:"طاولة"},
+{en:"phone",ar:"هاتف"},
+{en:"computer",ar:"حاسوب"},
+{en:"door",ar:"باب"},
+{en:"window",ar:"نافذة"},
+{en:"tree",ar:"شجرة"},
+{en:"road",ar:"طريق"},
+{en:"city",ar:"مدينة"},
+{en:"country",ar:"بلد"}
+];
 
-function updateXP(amount){
-
-xp = Number(xp) + amount;
-
-localStorage.setItem("xp", xp);
-
-document.getElementById("xp").innerText = xp;
-
-document.getElementById("level").innerText = Math.floor(xp/100)+1;
-
-}
-
-document.getElementById("xp").innerText = xp;
-document.getElementById("level").innerText = Math.floor(xp/100)+1;
-
-//////////////////////////////
-// TRANSLATOR
-//////////////////////////////
+let used=[];
 
 async function translateText(){
 
 let text=document.getElementById("text").value;
 let target=document.getElementById("target").value;
 
-if(!text){
-
-document.getElementById("result").innerText="Enter text";
+if(text==""){
+result.innerText="Enter text";
 return;
-
 }
 
 try{
 
-let res=await fetch("https://translate.argosopentech.com/translate",{
+let url=`https://api.mymemory.translated.net/get?q=${text}&langpair=en|${target}`;
 
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-q:text,
-source:"auto",
-target:target,
-format:"text"
-
-})
-
-});
+let res=await fetch(url);
 
 let data=await res.json();
 
-document.getElementById("result").innerText=data.translatedText;
+result.innerText=data.responseData.translatedText;
 
-}catch{
+}
+catch{
 
-document.getElementById("result").innerText="Translation failed";
+result.innerText="Translation failed";
 
 }
 
 }
 
-//////////////////////////////
-// VOICE
-//////////////////////////////
 
-function speak(){
+function speakText(){
 
 let text=document.getElementById("text").value;
 
-let utter=new SpeechSynthesisUtterance(text);
+let speech=new SpeechSynthesisUtterance(text);
 
-speechSynthesis.speak(utter);
+speech.lang="en-US";
 
-}
-
-function speakQuestion(){
-
-let utter=new SpeechSynthesisUtterance(currentWord.en);
-
-speechSynthesis.speak(utter);
+speechSynthesis.speak(speech);
 
 }
 
-//////////////////////////////
-// WORD LIST 100 WORDS
-//////////////////////////////
 
-let words=[
+let current;
 
-{en:"car",ar:"سيارة"},
-{en:"book",ar:"كتاب"},
-{en:"apple",ar:"تفاحة"},
-{en:"school",ar:"مدرسة"},
-{en:"water",ar:"ماء"},
-{en:"house",ar:"منزل"},
-{en:"sun",ar:"شمس"},
-{en:"moon",ar:"قمر"},
-{en:"food",ar:"طعام"},
-{en:"friend",ar:"صديق"},
-
-{en:"computer",ar:"حاسوب"},
-{en:"phone",ar:"هاتف"},
-{en:"teacher",ar:"معلم"},
-{en:"student",ar:"طالب"},
-{en:"city",ar:"مدينة"},
-{en:"dog",ar:"كلب"},
-{en:"cat",ar:"قط"},
-{en:"tree",ar:"شجرة"},
-{en:"milk",ar:"حليب"},
-{en:"coffee",ar:"قهوة"},
-
-{en:"chair",ar:"كرسي"},
-{en:"table",ar:"طاولة"},
-{en:"window",ar:"نافذة"},
-{en:"door",ar:"باب"},
-{en:"road",ar:"طريق"},
-{en:"river",ar:"نهر"},
-{en:"mountain",ar:"جبل"},
-{en:"sea",ar:"بحر"},
-{en:"sky",ar:"سماء"},
-{en:"rain",ar:"مطر"},
-
-{en:"red",ar:"أحمر"},
-{en:"blue",ar:"أزرق"},
-{en:"green",ar:"أخضر"},
-{en:"black",ar:"أسود"},
-{en:"white",ar:"أبيض"},
-
-{en:"run",ar:"يجري"},
-{en:"eat",ar:"يأكل"},
-{en:"drink",ar:"يشرب"},
-{en:"read",ar:"يقرأ"},
-{en:"write",ar:"يكتب"}
-
-];
-
-//////////////////////////////
-// EXERCISE SYSTEM
-//////////////////////////////
-
-let used=[];
-let currentWord;
 
 function startExercise(){
 
-if(used.length===words.length){
+let available=words.filter(w=>!used.includes(w.en));
 
+if(available.length==0){
 used=[];
+available=words;
 }
 
-let index;
+current=available[Math.floor(Math.random()*available.length)];
 
-do{
+used.push(current.en);
 
-index=Math.floor(Math.random()*words.length);
+question.innerText=current.en;
 
-}while(used.includes(index));
+choices.innerHTML="";
 
-used.push(index);
-
-currentWord=words[index];
-
-document.getElementById("question").innerText=currentWord.en;
-
-generateOptions();
-
-}
-
-function generateOptions(){
-
-let options=[currentWord.ar];
+let options=[current.ar];
 
 while(options.length<4){
 
@@ -305,25 +192,35 @@ options.push(random);
 
 options.sort(()=>Math.random()-0.5);
 
-let html="";
-
 options.forEach(opt=>{
 
-html+=`<button class="option" onclick="check('${opt}')">${opt}</button>`;
+let btn=document.createElement("button");
+
+btn.innerText=opt;
+
+btn.onclick=()=>checkAnswer(opt);
+
+choices.appendChild(btn);
 
 });
 
-document.getElementById("options").innerHTML=html;
-
 }
 
-function check(answer){
 
-if(answer===currentWord.ar){
+function checkAnswer(answer){
 
-updateXP(10);
+if(answer==current.ar){
 
-startExercise();
+xp+=10;
+
+if(xp>=level*50){
+level++;
+}
+
+xpText.innerText=xp;
+levelText.innerText=level;
+
+alert("Correct");
 
 }else{
 
@@ -332,6 +229,28 @@ alert("Wrong");
 }
 
 }
+
+
+function speakQuestion(){
+
+if(current){
+
+let speech=new SpeechSynthesisUtterance(current.en);
+
+speech.lang="en-US";
+
+speechSynthesis.speak(speech);
+
+}
+
+}
+
+
+let xpText=document.getElementById("xp");
+let levelText=document.getElementById("level");
+let result=document.getElementById("result");
+let question=document.getElementById("question");
+let choices=document.getElementById("choices");
 
 </script>
 
