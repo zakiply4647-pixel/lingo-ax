@@ -7,32 +7,33 @@
 
 <title>Lingo-AX Professional</title>
 
+<meta name="description" content="Lingo-AX Translator Exercises Voice Grammar">
+
 <style>
 
 body{
-margin:0;
 font-family:Arial;
+margin:0;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
 color:white;
 text-align:center;
 }
 
-.box{
+.container{
 background:rgba(0,0,0,0.3);
+padding:25px;
 margin:20px auto;
-padding:20px;
-border-radius:15px;
+width:90%;
 max-width:500px;
+border-radius:15px;
 }
 
 input,select,button{
-
-padding:12px;
-margin:6px;
-border:none;
+padding:10px;
+margin:5px;
 border-radius:8px;
+border:none;
 font-size:16px;
-
 }
 
 button{
@@ -44,18 +45,15 @@ button:hover{
 background:#00cc66;
 }
 
+#result{
+margin-top:10px;
+font-size:20px;
+}
+
 .option{
 display:block;
 margin:5px auto;
 width:80%;
-}
-
-.correct{
-background:green!important;
-}
-
-.wrong{
-background:red!important;
 }
 
 </style>
@@ -65,99 +63,82 @@ background:red!important;
 
 <h1>Lingo-AX</h1>
 
+<div>
 XP: <span id="xp">0</span>
-&nbsp;&nbsp;
 Level: <span id="level">1</span>
+</div>
 
-<!-- TRANSLATOR -->
+<!-- Translator -->
 
-<div class="box">
+<div class="container">
 
 <h2>Translator</h2>
 
 <input id="text" placeholder="Enter text">
 
 <select id="target">
+
 <option value="ar">Arabic</option>
 <option value="en">English</option>
 <option value="fr">French</option>
 <option value="es">Spanish</option>
+
 </select>
 
 <br>
 
-<button onclick="translate()">Translate</button>
+<button onclick="translateText()">Translate</button>
+
 <button onclick="speak()">Speak</button>
 
-<p id="result"></p>
+<div id="result"></div>
 
 </div>
 
-<!-- EXERCISE -->
+<!-- Exercise -->
 
-<div class="box">
+<div class="container">
 
 <h2>Exercise</h2>
 
-<p id="question">Press Start</p>
+<div id="question">Press Start</div>
 
 <button onclick="speakQuestion()">Speak Question</button>
 
 <div id="options"></div>
 
-<button onclick="nextQuestion()">Start</button>
-
-</div>
-
-<!-- GRAMMAR -->
-
-<div class="box">
-
-<h2>Grammar</h2>
-
-<p id="grammar">Press button</p>
-
-<button onclick="nextGrammar()">Next</button>
+<button onclick="startExercise()">Start</button>
 
 </div>
 
 <script>
 
-/* XP SYSTEM */
+//////////////////////////////
+// XP SYSTEM
+//////////////////////////////
 
-let xp=parseInt(localStorage.getItem("xp")||0);
-let level=parseInt(localStorage.getItem("level")||1);
+let xp = localStorage.getItem("xp") || 0;
 
-updateXP();
+function updateXP(amount){
 
-function updateXP(){
+xp = Number(xp) + amount;
 
-document.getElementById("xp").innerText=xp;
-document.getElementById("level").innerText=level;
+localStorage.setItem("xp", xp);
 
-}
+document.getElementById("xp").innerText = xp;
 
-function addXP(){
-
-xp+=10;
-
-if(xp>=level*100){
-
-xp=0;
-level++;
+document.getElementById("level").innerText = Math.floor(xp/100)+1;
 
 }
 
-localStorage.setItem("xp",xp);
-localStorage.setItem("level",level);
+document.getElementById("xp").innerText = xp;
+document.getElementById("level").innerText = Math.floor(xp/100)+1;
 
-updateXP();
+//////////////////////////////
+// TRANSLATOR
+//////////////////////////////
 
-}
-
-/* TRANSLATE REAL */
-
-async function translate(){
+async function translateText(){
 
 let text=document.getElementById("text").value;
 let target=document.getElementById("target").value;
@@ -171,7 +152,7 @@ return;
 
 try{
 
-let res=await fetch("https://libretranslate.de/translate",{
+let res=await fetch("https://translate.argosopentech.com/translate",{
 
 method:"POST",
 
@@ -202,100 +183,94 @@ document.getElementById("result").innerText="Translation failed";
 
 }
 
-/* SPEECH */
+//////////////////////////////
+// VOICE
+//////////////////////////////
 
 function speak(){
 
 let text=document.getElementById("text").value;
 
-let msg=new SpeechSynthesisUtterance(text);
+let utter=new SpeechSynthesisUtterance(text);
 
-speechSynthesis.cancel();
-speechSynthesis.speak(msg);
+speechSynthesis.speak(utter);
 
 }
 
 function speakQuestion(){
 
-let text=document.getElementById("question").innerText;
+let utter=new SpeechSynthesisUtterance(currentWord.en);
 
-let msg=new SpeechSynthesisUtterance(text);
-
-speechSynthesis.cancel();
-speechSynthesis.speak(msg);
+speechSynthesis.speak(utter);
 
 }
 
-/* WORD LIST */
+//////////////////////////////
+// WORD LIST 100 WORDS
+//////////////////////////////
 
 let words=[
 
-["car","سيارة"],
-["apple","تفاحة"],
-["dog","كلب"],
-["cat","قطة"],
-["book","كتاب"],
-["house","منزل"],
-["water","ماء"],
-["food","طعام"],
-["school","مدرسة"],
-["teacher","معلم"],
+{en:"car",ar:"سيارة"},
+{en:"book",ar:"كتاب"},
+{en:"apple",ar:"تفاحة"},
+{en:"school",ar:"مدرسة"},
+{en:"water",ar:"ماء"},
+{en:"house",ar:"منزل"},
+{en:"sun",ar:"شمس"},
+{en:"moon",ar:"قمر"},
+{en:"food",ar:"طعام"},
+{en:"friend",ar:"صديق"},
 
-["sun","شمس"],
-["moon","قمر"],
-["tree","شجرة"],
-["road","طريق"],
-["phone","هاتف"],
-["computer","حاسوب"],
-["city","مدينة"],
-["friend","صديق"],
-["family","عائلة"],
-["man","رجل"],
+{en:"computer",ar:"حاسوب"},
+{en:"phone",ar:"هاتف"},
+{en:"teacher",ar:"معلم"},
+{en:"student",ar:"طالب"},
+{en:"city",ar:"مدينة"},
+{en:"dog",ar:"كلب"},
+{en:"cat",ar:"قط"},
+{en:"tree",ar:"شجرة"},
+{en:"milk",ar:"حليب"},
+{en:"coffee",ar:"قهوة"},
 
-["woman","امرأة"],
-["child","طفل"],
-["love","حب"],
-["day","يوم"],
-["night","ليل"],
-["time","وقت"],
-["year","سنة"],
-["work","عمل"],
-["money","مال"],
-["music","موسيقى"],
+{en:"chair",ar:"كرسي"},
+{en:"table",ar:"طاولة"},
+{en:"window",ar:"نافذة"},
+{en:"door",ar:"باب"},
+{en:"road",ar:"طريق"},
+{en:"river",ar:"نهر"},
+{en:"mountain",ar:"جبل"},
+{en:"sea",ar:"بحر"},
+{en:"sky",ar:"سماء"},
+{en:"rain",ar:"مطر"},
 
-["movie","فيلم"],
-["game","لعبة"],
-["ball","كرة"],
-["door","باب"],
-["window","نافذة"],
-["chair","كرسي"],
-["table","طاولة"],
-["bed","سرير"],
-["room","غرفة"],
-["air","هواء"],
+{en:"red",ar:"أحمر"},
+{en:"blue",ar:"أزرق"},
+{en:"green",ar:"أخضر"},
+{en:"black",ar:"أسود"},
+{en:"white",ar:"أبيض"},
 
-["fire","نار"],
-["earth","أرض"],
-["sea","بحر"],
-["river","نهر"],
-["mountain","جبل"],
-["sky","سماء"],
-["rain","مطر"],
-["snow","ثلج"],
-["wind","ريح"],
-["red","أحمر"]
+{en:"run",ar:"يجري"},
+{en:"eat",ar:"يأكل"},
+{en:"drink",ar:"يشرب"},
+{en:"read",ar:"يقرأ"},
+{en:"write",ar:"يكتب"}
 
 ];
 
+//////////////////////////////
+// EXERCISE SYSTEM
+//////////////////////////////
+
 let used=[];
-let correct;
+let currentWord;
 
-/* EXERCISE SYSTEM */
+function startExercise(){
 
-function nextQuestion(){
+if(used.length===words.length){
 
-if(used.length==words.length)
 used=[];
+}
 
 let index;
 
@@ -307,18 +282,24 @@ index=Math.floor(Math.random()*words.length);
 
 used.push(index);
 
-correct=words[index];
+currentWord=words[index];
 
-document.getElementById("question").innerText=correct[0];
+document.getElementById("question").innerText=currentWord.en;
 
-let options=[correct[1]];
+generateOptions();
+
+}
+
+function generateOptions(){
+
+let options=[currentWord.ar];
 
 while(options.length<4){
 
-let r=words[Math.floor(Math.random()*words.length)][1];
+let random=words[Math.floor(Math.random()*words.length)].ar;
 
-if(!options.includes(r))
-options.push(r);
+if(!options.includes(random))
+options.push(random);
 
 }
 
@@ -326,9 +307,9 @@ options.sort(()=>Math.random()-0.5);
 
 let html="";
 
-options.forEach(o=>{
+options.forEach(opt=>{
 
-html+=`<button class="option" onclick="answer(this)">${o}</button>`;
+html+=`<button class="option" onclick="check('${opt}')">${opt}</button>`;
 
 });
 
@@ -336,48 +317,19 @@ document.getElementById("options").innerHTML=html;
 
 }
 
-function answer(btn){
+function check(answer){
 
-if(btn.innerText==correct[1]){
+if(answer===currentWord.ar){
 
-btn.classList.add("correct");
-addXP();
+updateXP(10);
+
+startExercise();
 
 }else{
 
-btn.classList.add("wrong");
+alert("Wrong");
 
 }
-
-}
-
-/* GRAMMAR */
-
-let grammar=[
-
-"Present simple: I eat",
-"Past simple: I ate",
-"Future simple: I will eat",
-"I am / He is / They are",
-"Do / Does",
-"Did",
-"Verb + ing",
-"I have eaten",
-"I had eaten",
-"I will have eaten"
-
-];
-
-let g=0;
-
-function nextGrammar(){
-
-document.getElementById("grammar").innerText=grammar[g];
-
-g++;
-
-if(g>=grammar.length)
-g=0;
 
 }
 
