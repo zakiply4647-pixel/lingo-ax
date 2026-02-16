@@ -8,59 +8,44 @@
 
 <style>
 
-/* =========================
-GLOBAL STYLE
-========================= */
-
 body{
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
-margin:0;
-padding:0;
 text-align:center;
 color:white;
+padding:20px;
 }
 
-.container{
+.box{
 background:rgba(0,0,0,0.3);
 padding:20px;
-margin:20px auto;
-width:90%;
-max-width:500px;
 border-radius:15px;
-box-shadow:0 0 20px rgba(0,0,0,0.3);
+max-width:500px;
+margin:auto;
+margin-bottom:20px;
 }
 
 input,select,button{
-
 padding:10px;
 margin:5px;
 border:none;
 border-radius:8px;
 font-size:16px;
-
 }
 
 button{
-
 background:#00ff88;
 cursor:pointer;
-font-weight:bold;
-
 }
 
 button:hover{
-
 background:#00cc66;
-
 }
 
 .option{
-
 display:block;
-margin:10px;
-width:90%;
-
+width:100%;
+margin:5px;
 }
 
 </style>
@@ -71,20 +56,14 @@ width:90%;
 
 <h1>Lingo-AX</h1>
 
-<div>
 XP: <span id="xp">0</span>
 Level: <span id="level">1</span>
-</div>
 
-<!-- =========================
-TRANSLATOR
-========================= -->
-
-<div class="container">
+<div class="box">
 
 <h2>Translator</h2>
 
-<input id="translateInput" placeholder="Enter text">
+<input id="inputText" placeholder="Enter text">
 
 <select id="lang">
 
@@ -97,155 +76,194 @@ TRANSLATOR
 
 <br>
 
-<button onclick="translate()">Translate</button>
+<button onclick="translateText()">Translate</button>
 
 <button onclick="speak()">Speak</button>
 
-<p id="result"></p>
+<p id="output"></p>
 
 </div>
 
-<!-- =========================
-EXERCISE
-========================= -->
-
-<div class="container">
+<div class="box">
 
 <h2>Exercise</h2>
 
-<p id="question">loading...</p>
+<p id="question"></p>
 
-<button class="option" onclick="answer(0)" id="opt0"></button>
-<button class="option" onclick="answer(1)" id="opt1"></button>
-<button class="option" onclick="answer(2)" id="opt2"></button>
-<button class="option" onclick="answer(3)" id="opt3"></button>
+<div id="answers"></div>
 
 </div>
 
+
 <script>
 
-/* =========================
-XP SYSTEM
-========================= */
+/* XP */
 
 let xp=localStorage.getItem("xp")||0;
 
 function updateXP(){
 
 document.getElementById("xp").innerText=xp;
-
-let level=Math.floor(xp/100)+1;
-
-document.getElementById("level").innerText=level;
+document.getElementById("level").innerText=Math.floor(xp/10)+1;
 
 }
 
 updateXP();
 
-/* =========================
-TRANSLATE
-========================= */
+/* REAL GOOGLE TRANSLATE */
 
-async function translate(){
+async function translateText(){
 
-let text=document.getElementById("translateInput").value;
+let text=document.getElementById("inputText").value;
 
 let lang=document.getElementById("lang").value;
 
-try{
+if(text==""){
+alert("Enter text");
+return;
+}
 
-let res=await fetch("https://translate.argosopentech.com/translate",{
+let url=
+"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl="
++lang+
+"&dt=t&q="+encodeURIComponent(text);
 
-method:"POST",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-q:text,
-source:"auto",
-target:lang
-
-})
-
-});
+let res=await fetch(url);
 
 let data=await res.json();
 
-document.getElementById("result").innerText=data.translatedText;
+let translated=data[0][0][0];
 
-}catch{
-
-document.getElementById("result").innerText="Error";
+document.getElementById("output").innerText=translated;
 
 }
 
-}
-
-/* =========================
-VOICE
-========================= */
+/* SPEAK */
 
 function speak(){
 
-let text=document.getElementById("translateInput").value;
+let text=document.getElementById("inputText").value;
 
-let speech=new SpeechSynthesisUtterance(text);
+let lang=document.getElementById("lang").value;
 
-speech.lang=document.getElementById("lang").value;
+let utter=new SpeechSynthesisUtterance(text);
 
-speechSynthesis.speak(speech);
+utter.lang=lang;
+
+speechSynthesis.speak(utter);
 
 }
 
-/* =========================
-WORDS DATABASE
-========================= */
+/* WORD DATABASE */
 
 let words=[
 
-["car","سيارة"],
-["apple","تفاحة"],
-["dog","كلب"],
-["cat","قطة"],
-["house","منزل"],
-["water","ماء"],
-["food","طعام"],
-["book","كتاب"],
-["school","مدرسة"],
-["friend","صديق"],
-["sun","شمس"],
-["moon","قمر"],
-["computer","حاسوب"],
-["phone","هاتف"],
-["table","طاولة"],
-["chair","كرسي"],
-["city","مدينة"],
-["road","طريق"],
-["tree","شجرة"],
-["river","نهر"],
-["milk","حليب"],
-["bread","خبز"],
-["teacher","معلم"],
-["student","طالب"],
-["music","موسيقى"],
-["movie","فيلم"],
-["game","لعبة"],
-["language","لغة"],
-["family","عائلة"],
-["child","طفل"]
+{en:"car",ar:"سيارة"},
+{en:"apple",ar:"تفاحة"},
+{en:"dog",ar:"كلب"},
+{en:"cat",ar:"قطة"},
+{en:"house",ar:"منزل"},
+{en:"water",ar:"ماء"},
+{en:"food",ar:"طعام"},
+{en:"book",ar:"كتاب"},
+{en:"school",ar:"مدرسة"},
+{en:"friend",ar:"صديق"},
+
+{en:"sun",ar:"شمس"},
+{en:"moon",ar:"قمر"},
+{en:"computer",ar:"حاسوب"},
+{en:"phone",ar:"هاتف"},
+{en:"table",ar:"طاولة"},
+{en:"chair",ar:"كرسي"},
+{en:"city",ar:"مدينة"},
+{en:"road",ar:"طريق"},
+{en:"tree",ar:"شجرة"},
+{en:"river",ar:"نهر"},
+
+{en:"milk",ar:"حليب"},
+{en:"bread",ar:"خبز"},
+{en:"teacher",ar:"معلم"},
+{en:"student",ar:"طالب"},
+{en:"music",ar:"موسيقى"},
+{en:"movie",ar:"فيلم"},
+{en:"game",ar:"لعبة"},
+{en:"language",ar:"لغة"},
+{en:"family",ar:"عائلة"},
+{en:"child",ar:"طفل"},
+
+{en:"man",ar:"رجل"},
+{en:"woman",ar:"امرأة"},
+{en:"boy",ar:"ولد"},
+{en:"girl",ar:"بنت"},
+{en:"day",ar:"يوم"},
+{en:"night",ar:"ليل"},
+{en:"week",ar:"أسبوع"},
+{en:"month",ar:"شهر"},
+{en:"year",ar:"سنة"},
+{en:"time",ar:"وقت"},
+
+{en:"work",ar:"عمل"},
+{en:"job",ar:"وظيفة"},
+{en:"money",ar:"مال"},
+{en:"shop",ar:"متجر"},
+{en:"market",ar:"سوق"},
+{en:"bank",ar:"بنك"},
+{en:"hotel",ar:"فندق"},
+{en:"restaurant",ar:"مطعم"},
+{en:"hospital",ar:"مستشفى"},
+{en:"doctor",ar:"طبيب"},
+
+{en:"nurse",ar:"ممرضة"},
+{en:"police",ar:"شرطة"},
+{en:"fire",ar:"نار"},
+{en:"earth",ar:"أرض"},
+{en:"air",ar:"هواء"},
+{en:"sea",ar:"بحر"},
+{en:"mountain",ar:"جبل"},
+{en:"forest",ar:"غابة"},
+{en:"rain",ar:"مطر"},
+{en:"snow",ar:"ثلج"},
+
+{en:"hot",ar:"حار"},
+{en:"cold",ar:"بارد"},
+{en:"big",ar:"كبير"},
+{en:"small",ar:"صغير"},
+{en:"fast",ar:"سريع"},
+{en:"slow",ar:"بطيء"},
+{en:"good",ar:"جيد"},
+{en:"bad",ar:"سيء"},
+{en:"new",ar:"جديد"},
+{en:"old",ar:"قديم"},
+
+{en:"open",ar:"مفتوح"},
+{en:"close",ar:"مغلق"},
+{en:"start",ar:"يبدأ"},
+{en:"stop",ar:"يتوقف"},
+{en:"run",ar:"يجري"},
+{en:"walk",ar:"يمشي"},
+{en:"eat",ar:"يأكل"},
+{en:"drink",ar:"يشرب"},
+{en:"sleep",ar:"ينام"},
+{en:"wake",ar:"يستيقظ"},
+
+{en:"read",ar:"يقرأ"},
+{en:"write",ar:"يكتب"},
+{en:"listen",ar:"يستمع"},
+{en:"speak",ar:"يتكلم"},
+{en:"learn",ar:"يتعلم"},
+{en:"teach",ar:"يعلم"},
+{en:"play",ar:"يلعب"},
+{en:"watch",ar:"يشاهد"},
+{en:"love",ar:"يحب"},
+{en:"like",ar:"يعجب"}
 
 ];
 
-/* =========================
-EXERCISE SYSTEM
-========================= */
-
 let used=[];
 
-let correctIndex=0;
+let current;
+
+/* EXERCISE */
 
 function newQuestion(){
 
@@ -265,45 +283,49 @@ index=Math.floor(Math.random()*words.length);
 
 used.push(index);
 
-let word=words[index];
+current=words[index];
 
-document.getElementById("question").innerText=word[0];
+document.getElementById("question").innerText=current.en;
 
-correctIndex=Math.floor(Math.random()*4);
+let options=[current.ar];
 
-for(let i=0;i<4;i++){
+while(options.length<4){
 
-let btn=document.getElementById("opt"+i);
+let rand=words[Math.floor(Math.random()*words.length)].ar;
 
-if(i==correctIndex){
-
-btn.innerText=word[1];
-
-btn.correct=true;
-
-}else{
-
-btn.innerText=words[Math.floor(Math.random()*words.length)][1];
-
-btn.correct=false;
+if(!options.includes(rand)) options.push(rand);
 
 }
 
-}
+options.sort(()=>Math.random()-0.5);
+
+let html="";
+
+options.forEach(opt=>{
+
+html+=`<button class="option" onclick="answer('${opt}')">${opt}</button>`;
+
+});
+
+document.getElementById("answers").innerHTML=html;
 
 }
 
-function answer(i){
+function answer(choice){
 
-let btn=document.getElementById("opt"+i);
-
-if(btn.correct){
+if(choice==current.ar){
 
 xp++;
 
 localStorage.setItem("xp",xp);
 
 updateXP();
+
+alert("Correct");
+
+}else{
+
+alert("Wrong");
 
 }
 
@@ -317,3 +339,4 @@ newQuestion();
 
 </body>
 </html>
+
