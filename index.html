@@ -1,30 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Lingo-AX Professional</title>
 
-<meta name="description" content="Lingo-AX language learning platform translator exercises voice grammar">
+<meta name="description" content="Lingo-AX Professional translator exercises voice grammar">
 
 <style>
 
-/* =========================
-GLOBAL STYLE
-========================= */
+/* ================= GLOBAL ================= */
 
 body{
-font-family:Arial;
 margin:0;
-padding:0;
+font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
 color:white;
 text-align:center;
 }
 
 .container{
-background:rgba(0,0,0,0.25);
+background:rgba(0,0,0,0.3);
 margin:20px auto;
 padding:20px;
 border-radius:15px;
@@ -32,8 +30,8 @@ max-width:500px;
 }
 
 input,select,button{
-padding:10px;
-margin:5px;
+padding:12px;
+margin:6px;
 border:none;
 border-radius:8px;
 font-size:16px;
@@ -50,13 +48,13 @@ background:#00cc66;
 
 .option{
 display:block;
-margin:5px auto;
+margin:6px auto;
 width:80%;
 }
 
 </style>
-</head>
 
+</head>
 <body>
 
 <h1>Lingo-AX</h1>
@@ -117,68 +115,80 @@ Level: <span id="level">1</span>
 
 <script>
 
-/* =========================
-XP SYSTEM
-========================= */
+/* ================= XP SYSTEM ================= */
 
-let xp = localStorage.getItem("xp") || 0;
-let level = localStorage.getItem("level") || 1;
+let xp = parseInt(localStorage.getItem("xp") || 0);
+let level = parseInt(localStorage.getItem("level") || 1);
+
+updateXP();
+
+function updateXP(){
 
 document.getElementById("xp").innerText = xp;
 document.getElementById("level").innerText = level;
 
+}
+
 function addXP(amount){
 
-xp = parseInt(xp) + amount;
+xp += amount;
 
 if(xp >= level*100){
+
 xp = 0;
 level++;
+
 }
 
 localStorage.setItem("xp",xp);
 localStorage.setItem("level",level);
 
-document.getElementById("xp").innerText = xp;
-document.getElementById("level").innerText = level;
+updateXP();
 
 }
 
-/* =========================
-TRANSLATOR
-========================= */
+/* ================= TRANSLATOR ================= */
 
 async function translate(){
 
-let text = document.getElementById("text").value;
+let text = document.getElementById("text").value.trim();
 let lang = document.getElementById("lang").value;
 
-if(text=="") return;
+if(!text) return;
 
-let url =
+try{
+
+let res = await fetch(
 "https://api.mymemory.translated.net/get?q="
 + encodeURIComponent(text)
-+ "&langpair=en|" + lang;
-
-let res = await fetch(url);
++ "&langpair=en|" + lang
+);
 
 let data = await res.json();
 
 document.getElementById("result").innerText =
 data.responseData.translatedText;
 
+}catch{
+
+document.getElementById("result").innerText =
+"Translation failed";
+
 }
 
-/* =========================
-VOICE
-========================= */
+}
+
+/* ================= VOICE ================= */
 
 function speak(){
 
 let text = document.getElementById("text").value;
 
+if(!text) return;
+
 let msg = new SpeechSynthesisUtterance(text);
 
+speechSynthesis.cancel();
 speechSynthesis.speak(msg);
 
 }
@@ -189,13 +199,12 @@ let text = document.getElementById("question").innerText;
 
 let msg = new SpeechSynthesisUtterance(text);
 
+speechSynthesis.cancel();
 speechSynthesis.speak(msg);
 
 }
 
-/* =========================
-WORD LIST 100 WORDS
-========================= */
+/* ================= WORD LIST ================= */
 
 let words = [
 
@@ -209,7 +218,6 @@ let words = [
 ["food","طعام"],
 ["school","مدرسة"],
 ["teacher","معلم"],
-
 ["sun","شمس"],
 ["moon","قمر"],
 ["star","نجمة"],
@@ -220,7 +228,6 @@ let words = [
 ["city","مدينة"],
 ["friend","صديق"],
 ["family","عائلة"],
-
 ["man","رجل"],
 ["woman","امرأة"],
 ["child","طفل"],
@@ -231,7 +238,6 @@ let words = [
 ["year","سنة"],
 ["work","عمل"],
 ["money","مال"],
-
 ["music","موسيقى"],
 ["movie","فيلم"],
 ["game","لعبة"],
@@ -242,7 +248,6 @@ let words = [
 ["table","طاولة"],
 ["bed","سرير"],
 ["room","غرفة"],
-
 ["air","هواء"],
 ["fire","نار"],
 ["earth","أرض"],
@@ -253,7 +258,6 @@ let words = [
 ["rain","مطر"],
 ["snow","ثلج"],
 ["wind","ريح"],
-
 ["red","أحمر"],
 ["blue","أزرق"],
 ["green","أخضر"],
@@ -264,7 +268,6 @@ let words = [
 ["slow","بطيء"],
 ["big","كبير"],
 ["small","صغير"],
-
 ["happy","سعيد"],
 ["sad","حزين"],
 ["good","جيد"],
@@ -275,7 +278,6 @@ let words = [
 ["strong","قوي"],
 ["weak","ضعيف"],
 ["easy","سهل"],
-
 ["hard","صعب"],
 ["open","مفتوح"],
 ["close","مغلق"],
@@ -286,7 +288,6 @@ let words = [
 ["sleep","ينام"],
 ["read","يقرأ"],
 ["write","يكتب"],
-
 ["listen","يستمع"],
 ["speak","يتحدث"],
 ["learn","يتعلم"],
@@ -296,25 +297,28 @@ let words = [
 ["sell","يبيع"],
 ["drive","يقود"],
 ["travel","يسافر"],
-["live","يعيش"]
+["live","يعيش"],
+["think","يفكر"],
+["know","يعرف"],
+["see","يرى"],
+["come","يأتي"],
+["go","يذهب"],
+["take","يأخذ"],
+["give","يعطي"],
+["make","يصنع"],
+["find","يجد"]
 
 ];
 
-/* =========================
-EXERCISE SYSTEM
-========================= */
-
 let used = [];
+let correct;
 
-let correctWord;
+/* ================= EXERCISE ================= */
 
 function nextQuestion(){
 
-if(used.length == words.length){
-
+if(used.length === words.length)
 used = [];
-
-}
 
 let index;
 
@@ -322,27 +326,23 @@ do{
 
 index = Math.floor(Math.random()*words.length);
 
-}
-while(used.includes(index));
+}while(used.includes(index));
 
 used.push(index);
 
-correctWord = words[index];
+correct = words[index];
 
-document.getElementById("question").innerText =
-correctWord[0];
+document.getElementById("question").innerText = correct[0];
 
-let options = [];
-
-options.push(correctWord[1]);
+let options = [correct[1]];
 
 while(options.length < 4){
 
-let rand =
+let random =
 words[Math.floor(Math.random()*words.length)][1];
 
-if(!options.includes(rand))
-options.push(rand);
+if(!options.includes(random))
+options.push(random);
 
 }
 
@@ -352,10 +352,7 @@ let html="";
 
 options.forEach(opt=>{
 
-html +=
-'<button class="option" onclick="answer(this)">'
-+ opt +
-'</button>';
+html += `<button class="option" onclick="answer(this)">${opt}</button>`;
 
 });
 
@@ -365,14 +362,12 @@ document.getElementById("options").innerHTML = html;
 
 function answer(btn){
 
-if(btn.innerText == correctWord[1]){
-
-addXP(10);
+if(btn.innerText === correct[1]){
 
 btn.style.background="green";
+addXP(10);
 
-}
-else{
+}else{
 
 btn.style.background="red";
 
@@ -380,22 +375,20 @@ btn.style.background="red";
 
 }
 
-/* =========================
-GRAMMAR
-========================= */
+/* ================= GRAMMAR ================= */
 
 let grammar = [
 
 "Present simple: I eat",
 "Past simple: I ate",
 "Future: I will eat",
-"Verb to be: I am",
+"I am",
 "He is",
 "They are",
 "I was",
-"I were",
 "Do / Does",
-"Did"
+"Did",
+"Verb + ing = present continuous"
 
 ];
 
