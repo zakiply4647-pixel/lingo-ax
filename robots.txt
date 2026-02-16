@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://zakiply4647-pixel.github.io/lingo-ax/sitemap.xml
